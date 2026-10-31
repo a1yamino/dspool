@@ -1,19 +1,17 @@
-# dspool 配置模板。复制为 config.yaml 后按需修改。
-# config.yaml / keys.txt / data/ 已在 .gitignore 中，不会被提交。
+# dspool configuration. Copy to config.yaml and edit.
+# config.yaml, keys.txt, and data/ are gitignored.
 
 listen: 127.0.0.1:8787
 state_file: data/state.json
 log_level: info
-# 日志文件。留空时：dspool serve 输出到 stderr；dspool claude/codex/pi
-# 自动写到 <state_file 目录>/dspool-agent.log，避免污染 agent 的 TUI。
+# Empty: serve logs to stderr; agent shortcuts log to <state_dir>/dspool-agent.log.
 log_file: ""
 
-# 代理客户端令牌（Claude Code / Codex / pi 用同一个即可）。
-# 留空则接受任意 token，仅适合本机。
+# Tokens accepted by the proxy. Empty accepts any token (local use only).
 client_keys:
   - dspool-local
 
-# /admin/* 的令牌。留空时 admin 仅允许 loopback 访问。
+# Token for /admin/*. Empty keeps admin endpoints loopback-only.
 admin_token: ""
 
 max_body_bytes: 67108864
@@ -24,53 +22,50 @@ upstream:
   balance_url: https://api.deepseek.com/user/balance
   request_header_timeout: 180s
   probe_timeout: 15s
-  # 可选：强制截断客户端请求的 max_tokens；0 表示不截断。
+  # Optional max_tokens clamp; 0 disables it.
   max_tokens_cap: 0
   anthropic_version: "2023-06-01"
 
 pool:
   # spread | weighted | highest | drain | round_robin
-  # 默认 spread：尽量同时使用所有 key，适合这些 key 也被别人使用、
-  # 希望本地吞吐/余额利用率最大的场景。
+  # spread uses the least-loaded key and drains smaller balances first when idle.
   strategy: spread
-  # 单个客户端请求最多尝试多少个上游 key。
+  # Maximum upstream keys tried per client request.
   max_attempts: 4
-  # 每个 key 的本地并发上限；0 = 不限制。
+  # Local concurrency cap per key; 0 = unlimited.
   max_inflight_per_key: 0
-  # weighted 策略中，in-flight 对权重的惩罚系数。
+  # In-flight penalty for the weighted strategy.
   inflight_penalty: 1.0
-  # 低于该余额的 key 会留在冷池（0 = 只要 > 0 就可用）。
+  # Keys below this balance stay in the cold pool (0 = any positive balance is usable).
   min_balance: 0
-  # 热池余额检查间隔。
+  # Hot-pool balance check interval.
   balance_interval: 30s
-  # 冷池检查（等别人充值）间隔。
+  # Cold-pool check interval while waiting for a top-up.
   cold_check_interval: 2m
-  # 启动时阻塞探活的超时；超时后乐观放行，后台继续检查。
+  # Startup probe budget. After this, keys are allowed optimistically and probed again in the background.
   startup_probe_timeout: 30s
   rate_limit_cooldown: 30s
   error_cooldown: 10s
-  # 没有可用热 key 时，立刻同步检查冷池，以便刚充值后马上恢复。
+  # Check the cold pool immediately when no hot key is available.
   refresh_cold_on_exhaustion: true
   exhaustion_refresh_cooldown: 10s
 
 models:
-  # 非 deepseek-* 的模型名默认改写为下面这个模型。
+  # Fallback for non-DeepSeek model names.
   default: deepseek-flash
-  # 带 haiku 的模型名（Claude Code 的后台小任务）使用这个模型。
+  # Used for Claude Code's haiku-style background requests.
   small: deepseek-flash
-  # 精确名或 glob 模式。
+  # Exact names or glob patterns.
   map: {}
   # map:
   #   "claude-opus*": deepseek-v4-pro
   #   "claude-sonnet*": deepseek-flash
 
 responses:
-  # Codex / pi 的 Responses 请求如何映射到 DeepSeek thinking：
-  # auto = 跟随 reasoning.effort（none 关闭思考）
-  # enabled / disabled = 强制开启或关闭
+  # auto | enabled | disabled
   thinking: auto
 
-# keys 可以写在 keys_file 里，也可以直接内联。
+# Keys can be listed in keys_file or inline.
 keys_file: keys.txt
 keys: []
 # keys:
