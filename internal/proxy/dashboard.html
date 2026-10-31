@@ -3,397 +3,1905 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dspool · DeepSeek key pool</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#e9eef0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1519" media="(prefers-color-scheme: dark)">
+<title>dspool key pool</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231c5a6b'/%3E%3Cpath d='M10 21v-6M16 22V10M22 18v-3' stroke='%23f8fbfc' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('dspool-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>
 <style>
   :root {
-    color-scheme: dark;
-    --bg: #0b0e14;
-    --bg-soft: #0f141d;
-    --panel: #12192400;
-    --panel-solid: #121924;
-    --border: #223048;
-    --border-soft: #1a2434;
-    --text: #e6edf7;
-    --muted: #8b9bb4;
-    --accent: #6ea8fe;
-    --green: #3fb950;
-    --blue: #58a6ff;
-    --amber: #d29922;
-    --red: #f85149;
-    --gray: #8b949e;
-    --shadow: 0 12px 30px rgba(0, 0, 0, .25);
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: light;
+    --bg: #e9eef0;
+    --surface: #fbfcfc;
+    --surface-2: #f2f6f7;
+    --surface-3: #eaf0f1;
+    --ink: #152025;
+    --ink-2: #35474e;
+    --muted: #5b6e75;
+    --line: #d3dee2;
+    --line-strong: #b9c8ce;
+    --accent: #1c5a6b;
+    --accent-strong: #144855;
+    --accent-soft: #dcecef;
+    --on-accent: #f8fbfc;
+    --hot: #2b7556;
+    --hot-soft: #e1f1e8;
+    --cold: #27658f;
+    --cold-soft: #e2eef6;
+    --invalid: #a33f38;
+    --invalid-soft: #f7e5e3;
+    --cooling: #90601a;
+    --cooling-soft: #f6ecd9;
+    --probing: #586a70;
+    --probing-soft: #e9eef0;
+    --track: #e3eaec;
+    --dot-bg: #cbd6d9;
+    --hero-shadow: 0 22px 54px rgba(20, 48, 58, .075);
+    --panel-shadow: 0 10px 30px rgba(20, 48, 58, .05);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   }
-  @media (prefers-color-scheme: light) {
-    :root {
-      color-scheme: light;
-      --bg: #f6f8fb;
-      --bg-soft: #eef2f8;
-      --panel-solid: #ffffff;
-      --border: #d7dfeb;
-      --border-soft: #e6ecf3;
-      --text: #16202e;
-      --muted: #60708a;
-      --accent: #1f6feb;
-      --green: #1a7f37;
-      --blue: #0969da;
-      --amber: #9a6700;
-      --red: #cf222e;
-      --gray: #6e7781;
-      --shadow: 0 10px 24px rgba(20, 40, 75, .08);
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0d1519;
+      --surface: #131e23;
+      --surface-2: #17252b;
+      --surface-3: #1b2a30;
+      --ink: #e7eef0;
+      --ink-2: #c2d0d4;
+      --muted: #91a4ab;
+      --line: #26363d;
+      --line-strong: #344a52;
+      --accent: #7bc5d5;
+      --accent-strong: #a0dbe6;
+      --accent-soft: #16333a;
+      --on-accent: #082126;
+      --hot: #74d0a0;
+      --hot-soft: #143326;
+      --cold: #82bbe7;
+      --cold-soft: #142a3b;
+      --invalid: #ef948b;
+      --invalid-soft: #3a2320;
+      --cooling: #e3b466;
+      --cooling-soft: #382c19;
+      --probing: #a2b1b7;
+      --probing-soft: #233137;
+      --track: #22333a;
+      --dot-bg: #1d2c32;
+      --hero-shadow: 0 28px 70px rgba(0, 0, 0, .34);
+      --panel-shadow: 0 16px 40px rgba(0, 0, 0, .2);
     }
   }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0d1519;
+    --surface: #131e23;
+    --surface-2: #17252b;
+    --surface-3: #1b2a30;
+    --ink: #e7eef0;
+    --ink-2: #c2d0d4;
+    --muted: #91a4ab;
+    --line: #26363d;
+    --line-strong: #344a52;
+    --accent: #7bc5d5;
+    --accent-strong: #a0dbe6;
+    --accent-soft: #16333a;
+    --on-accent: #082126;
+    --hot: #74d0a0;
+    --hot-soft: #143326;
+    --cold: #82bbe7;
+    --cold-soft: #142a3b;
+    --invalid: #ef948b;
+    --invalid-soft: #3a2320;
+    --cooling: #e3b466;
+    --cooling-soft: #382c19;
+    --probing: #a2b1b7;
+    --probing-soft: #233137;
+    --track: #22333a;
+    --dot-bg: #1d2c32;
+    --hero-shadow: 0 28px 70px rgba(0, 0, 0, .34);
+    --panel-shadow: 0 16px 40px rgba(0, 0, 0, .2);
+  }
+
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; min-height: 100%; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    background:
-      radial-gradient(1100px 500px at 15% -10%, rgba(110, 168, 254, .10), transparent 60%),
-      radial-gradient(900px 400px at 110% 0%, rgba(63, 185, 80, .07), transparent 55%),
-      var(--bg);
-    color: var(--text);
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--dot-bg) .7px, transparent .8px);
+    background-size: 18px 18px;
+    color: var(--ink);
     font-family: var(--sans);
     font-size: 14px;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+  body::selection { background: var(--accent-soft); }
+  a { color: inherit; }
+  button, input, select { font: inherit; color: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
   code, .mono { font-family: var(--mono); }
-  .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 22px 48px; }
-  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-  h1 { margin: 0; font-size: 24px; letter-spacing: .2px; display: flex; align-items: center; gap: 10px; }
-  h1 .logo { color: var(--accent); }
-  h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .2px; }
-  .sub { margin: 6px 0 0; color: var(--muted); }
-  .muted { color: var(--muted); }
-  .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  button {
-    appearance: none; border: 1px solid var(--border); background: var(--panel-solid); color: var(--text);
-    border-radius: 8px; padding: 8px 14px; font: inherit; font-size: 13px; cursor: pointer;
-    transition: border-color .15s, transform .05s, background .15s;
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
   }
-  button:hover { border-color: var(--accent); }
-  button:active { transform: translateY(1px); }
-  button:disabled { opacity: .55; cursor: wait; }
-  button.ghost { background: transparent; }
-  .pill {
-    display: inline-flex; align-items: center; gap: 7px; padding: 3px 10px; border-radius: 999px;
-    font-size: 12px; font-weight: 500; border: 1px solid var(--border); color: var(--muted); background: var(--bg-soft);
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .icon {
+    width: 16px; height: 16px; flex: none;
+    fill: none; stroke: currentColor; stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
   }
-  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gray); }
-  .pill.ok { color: var(--green); border-color: rgba(63, 185, 80, .35); }
-  .pill.ok::before { background: var(--green); box-shadow: 0 0 10px rgba(63, 185, 80, .7); }
-  .pill.bad { color: var(--red); border-color: rgba(248, 81, 73, .35); }
-  .pill.bad::before { background: var(--red); }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(138px, 1fr)); gap: 12px; margin: 24px 0 18px; }
-  .card {
-    background: var(--panel-solid); border: 1px solid var(--border-soft); border-radius: 12px;
-    padding: 14px 16px; box-shadow: var(--shadow);
+
+  .page { width: min(1180px, 100%); margin: 0 auto; padding: 28px 24px 56px; }
+
+  /* top bar */
+  .topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap; margin-bottom: 24px;
   }
-  .card .k { color: var(--muted); font-size: 12px; }
-  .card strong { display: block; font-size: 26px; line-height: 1.2; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
-  .card .hint { color: var(--muted); font-size: 11px; }
-  .card.hot strong { color: var(--green); }
-  .card.cold strong { color: var(--blue); }
-  .card.invalid strong { color: var(--red); }
-  .card.cooling strong { color: var(--amber); }
-  .panel {
-    background: var(--panel-solid); border: 1px solid var(--border-soft); border-radius: 14px;
-    box-shadow: var(--shadow); overflow: hidden;
+  .brand {
+    display: inline-flex; align-items: center; gap: 12px;
+    text-decoration: none; min-width: 0;
   }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid var(--border-soft); gap: 12px; }
+  .brand-mark {
+    width: 42px; height: 42px; border-radius: 13px;
+    border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--accent); display: grid; place-items: center; flex: none;
+  }
+  .brand-text { display: flex; flex-direction: column; min-width: 0; }
+  .brand-text strong {
+    font-size: 23px; line-height: 1.05; font-weight: 650;
+    letter-spacing: -.045em;
+  }
+  .brand-sub {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 4px; font-size: 12px; color: var(--muted);
+  }
+  .addr {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-2);
+    background: var(--surface-2); border: 1px solid var(--line);
+    padding: 1px 7px; border-radius: 6px; white-space: nowrap;
+  }
+  .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .updated {
+    font-size: 12px; color: var(--muted); margin-right: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    height: 38px; padding: 0 14px; border-radius: 10px;
+    border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink); font-size: 12.5px; font-weight: 550;
+    cursor: pointer; transition: background .16s ease, border-color .16s ease, color .16s ease;
+    text-decoration: none; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--muted); }
+  .btn:disabled { opacity: .58; cursor: wait; }
+  .btn.primary {
+    background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  }
+  .btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+  .btn.small { height: 30px; padding: 0 10px; border-radius: 8px; font-size: 11.5px; }
+  .icon-btn {
+    width: 38px; height: 38px; flex: none; display: inline-grid; place-items: center;
+    border: 1px solid var(--line); background: transparent; border-radius: 10px;
+    color: var(--ink-2); cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, color .16s ease;
+  }
+  .icon-btn:hover { background: var(--surface-2); border-color: var(--line-strong); color: var(--ink); }
+  .icon-btn.small { width: 30px; height: 30px; border-radius: 8px; color: var(--muted); }
+  .icon-btn.small:hover { color: var(--ink); }
+
+  .live-toggle {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 38px; padding: 0 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: transparent;
+    color: var(--ink-2); font-size: 12px; cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, color .16s ease;
+  }
+  .live-toggle:hover { background: var(--surface-2); border-color: var(--line-strong); }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--hot);
+    box-shadow: 0 0 0 3px var(--hot-soft); flex: none;
+  }
+  .live-toggle.paused .live-dot { background: var(--muted); box-shadow: 0 0 0 3px var(--surface-3); }
+  .live-toggle.offline .live-dot { background: var(--invalid); box-shadow: 0 0 0 3px var(--invalid-soft); }
+
+  .spinning .icon { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* banner */
+  .banner {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 18px; padding: 11px 14px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface-2); color: var(--ink-2);
+    font-size: 12.5px; line-height: 1.45;
+  }
+  .banner[data-tone="warn"] { background: var(--cooling-soft); border-color: transparent; color: var(--cooling); }
+  .banner[data-tone="error"], .banner[data-tone="bad"] { background: var(--invalid-soft); border-color: transparent; color: var(--invalid); }
+  .banner[data-tone="neutral"] { background: var(--surface-2); border-color: var(--line); color: var(--ink-2); }
+  .banner-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+  .banner-text { min-width: 0; flex: 1 1 260px; }
+  .banner-action {
+    margin-left: auto; height: 30px; padding: 0 10px;
+    border-radius: 8px; border: 1px solid currentColor; background: transparent;
+    color: inherit; font-size: 11.5px; cursor: pointer;
+  }
+  .banner-action:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+
+  /* hero */
+  .hero {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 1.08fr);
+    gap: 36px; padding: 30px 32px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 26px; box-shadow: var(--hero-shadow);
+  }
+  .hero-main { min-width: 0; }
+  .section-label {
+    margin: 0 0 12px; color: var(--muted); font-size: 12px; font-weight: 500;
+  }
+  .hero-balance {
+    display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap;
+    margin: 0; min-height: 1.05em;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(46px, 7vw, 72px); line-height: 1;
+    letter-spacing: -.045em; font-variant-numeric: tabular-nums lining-nums;
+  }
+  .hero-balance .cur {
+    font-family: var(--sans); font-size: .34em; font-weight: 600;
+    letter-spacing: 0; color: var(--accent); align-self: flex-start; margin-top: .18em;
+  }
+  .hero-balance .int { font-variant-numeric: tabular-nums lining-nums; }
+  .hero-balance .dec {
+    font-size: .4em; color: var(--muted); letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .hero-balance.empty {
+    font-family: var(--sans); font-size: 44px; font-weight: 400;
+    color: var(--muted); letter-spacing: 0;
+  }
+  .hero-secondary { min-height: 1.3em; margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+  .hero-sub { max-width: 48ch; margin: 18px 0 0; font-size: 13px; color: var(--ink-2); }
+  .hero-status {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 18px; padding: 5px 10px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface-2); font-size: 12px; color: var(--ink-2);
+  }
+  .hero-status strong { font-weight: 600; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
+  .hero-status[data-tone="good"] .status-dot { background: var(--hot); box-shadow: 0 0 0 3px var(--hot-soft); }
+  .hero-status[data-tone="warn"] .status-dot { background: var(--cooling); box-shadow: 0 0 0 3px var(--cooling-soft); }
+  .hero-status[data-tone="bad"] .status-dot { background: var(--invalid); box-shadow: 0 0 0 3px var(--invalid-soft); }
+  .hero-note { max-width: 50ch; margin: 18px 0 0; font-size: 12px; line-height: 1.65; color: var(--muted); }
+
+  .hero-chart {
+    min-width: 0; border-left: 1px solid var(--line);
+    padding-left: 36px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+  .chart-head h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+  .chart-head p { margin: 4px 0 0; font-size: 11px; color: var(--muted); }
+  .chart-currency {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 5px; padding: 2px 6px; white-space: nowrap;
+  }
+  .bar-chart { display: flex; flex-direction: column; gap: 4px; }
+  .bar-row {
+    display: grid; grid-template-columns: minmax(60px, 104px) minmax(0, 1fr) auto;
+    align-items: center; gap: 10px;
+    padding: 5px 6px; margin: 0 -6px; border-radius: 7px;
+    cursor: default;
+  }
+  .bar-row:hover, .bar-row:focus-visible { background: var(--surface-2); }
+  .bar-label {
+    font-size: 11.5px; color: var(--ink-2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bar-track { height: 7px; border-radius: 4px; background: var(--track); overflow: hidden; }
+  .bar-fill {
+    display: block; height: 100%; min-width: 2px; border-radius: 4px;
+    background: var(--accent); transition: width .45s cubic-bezier(.2,.7,.3,1);
+  }
+  .bar-value {
+    font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .chart-empty {
+    margin: 0; padding: 20px 0; border-top: 1px dashed var(--line);
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* vitals */
+  .vitals {
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .vital { padding: 15px 18px; border-left: 1px solid var(--line); min-width: 0; }
+  .vital:first-child { border-left: 0; padding-left: 0; }
+  .vital-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px; color: var(--muted); white-space: nowrap;
+  }
+  .vital strong {
+    display: block; margin: 5px 0 2px;
+    font-family: var(--mono); font-size: 26px; font-weight: 500;
+    line-height: 1; letter-spacing: -.055em; font-variant-numeric: tabular-nums;
+  }
+  .vital strong.zero { color: var(--muted); font-weight: 400; }
+  .vital-sub {
+    display: block; font-size: 11px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; display: inline-block; }
+  .dot.hot { background: var(--hot); }
+  .dot.cold { background: var(--cold); }
+  .dot.invalid { background: var(--invalid); }
+  .dot.cooling { background: var(--cooling); }
+  .dot.probing { background: var(--probing); }
+
+  /* keys panel */
+  .keys-panel {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 20px; box-shadow: var(--panel-shadow); overflow: hidden;
+  }
+  .panel-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; padding: 20px 22px 16px;
+  }
+  .panel-head h2 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -.025em; }
+  .panel-head p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .panel-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .search { position: relative; display: block; }
+  .search .icon {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; color: var(--muted); pointer-events: none;
+  }
+  .search input {
+    width: 236px; height: 38px; padding: 0 12px 0 34px;
+    border: 1px solid var(--line); border-radius: 9px;
+    background: var(--surface-2); color: var(--ink); font-size: 12.5px;
+  }
+  .search input::placeholder { color: var(--muted); }
+  .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .select-wrap { position: relative; display: block; }
+  .select-wrap .icon {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px; color: var(--muted); pointer-events: none;
+  }
+  .select-wrap select {
+    height: 38px; padding: 0 32px 0 11px; border-radius: 9px;
+    border: 1px solid var(--line); background: var(--surface-2);
+    color: var(--ink-2); font-size: 12.5px; appearance: none; cursor: pointer;
+  }
+  .select-wrap select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+  .filters {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 22px 14px; overflow-x: auto; scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px; flex: none;
+    height: 30px; padding: 0 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: transparent;
+    color: var(--ink-2); font-size: 11.5px; cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, color .16s ease;
+  }
+  .chip:hover { background: var(--surface-2); }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+  .chip .dot { width: 6px; height: 6px; }
+  .chip-count { font-family: var(--mono); font-size: 10px; opacity: .62; }
+
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; min-width: 940px; }
-  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; white-space: nowrap; }
-  th { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; background: var(--bg-soft); position: sticky; top: 0; z-index: 1; }
-  tbody tr:last-child td { border-bottom: 0; }
-  tbody tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
-  td.err { max-width: 280px; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 12px; }
-  .badge {
-    display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px;
-    font-size: 12px; border: 1px solid var(--border); background: var(--bg-soft);
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    padding: 9px 12px; text-align: left; white-space: nowrap;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: var(--surface-2); color: var(--muted);
+    font-size: 11px; font-weight: 500;
   }
-  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .badge.hot { color: var(--green); border-color: rgba(63,185,80,.3); background: rgba(63,185,80,.08); }
-  .badge.cold { color: var(--blue); border-color: rgba(88,166,255,.3); background: rgba(88,166,255,.08); }
-  .badge.invalid { color: var(--red); border-color: rgba(248,81,73,.3); background: rgba(248,81,73,.08); }
-  .badge.probing { color: var(--gray); }
-  .balance { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  .balance.zero { color: var(--red); }
-  .key-mask { font-family: var(--mono); color: var(--muted); font-size: 12px; }
-  .num { font-variant-numeric: tabular-nums; }
-  .small { font-size: 12px; }
-  .cooldown { display: block; color: var(--amber); font-size: 11px; }
-  .empty { padding: 38px 18px; text-align: center; color: var(--muted); }
-  .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin-top: 18px; padding: 0 4px; }
-  a { color: var(--accent); }
-  @media (max-width: 720px) {
-    .wrap { padding: 20px 14px 36px; }
-    h1 { font-size: 21px; }
-    .card strong { font-size: 22px; }
+  td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th:first-child, td:first-child { padding-left: 22px; }
+  th:last-child, td:last-child { padding-right: 22px; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .key-row { cursor: pointer; transition: background .12s ease; }
+  .key-row:hover { background: var(--surface-2); }
+  .key-label {
+    max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 13px; font-weight: 600; color: var(--ink);
+  }
+  .key-mask {
+    margin-top: 2px; font-family: var(--mono); font-size: 10.5px;
+    color: var(--muted); white-space: nowrap;
+  }
+  .key-row.is-invalid .key-label { color: var(--invalid); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 999px; border: 1px solid transparent;
+    font-size: 11px; line-height: 1.45; white-space: nowrap;
+  }
+  .badge .dot { width: 6px; height: 6px; }
+  .badge.hot { color: var(--hot); background: var(--hot-soft); }
+  .badge.cold { color: var(--cold); background: var(--cold-soft); }
+  .badge.invalid { color: var(--invalid); background: var(--invalid-soft); }
+  .badge.cooling { color: var(--cooling); background: var(--cooling-soft); }
+  .badge.probing { color: var(--probing); background: var(--probing-soft); }
+  .balance-value {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .balance-value.muted { color: var(--muted); }
+  .balance-bar {
+    display: block; width: 74px; height: 4px; margin-top: 5px;
+    border-radius: 3px; background: var(--track); overflow: hidden;
+  }
+  .balance-fill { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .balance-bar.unknown { background: var(--surface-3); }
+  .time { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; }
+  .time.muted { color: var(--muted); }
+  .stat-main {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-sub {
+    margin-top: 2px; font-family: var(--mono); font-size: 10px;
+    color: var(--muted); white-space: nowrap;
+  }
+  .cell-error {
+    max-width: 230px;
+    font-size: 11.5px; color: var(--muted);
+  }
+  .error-text {
+    display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .error-mobile-label { display: none; }
+  .cell-actions { text-align: right; white-space: nowrap; }
+  .row-actions { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; }
+  .btn-restore {
+    height: 28px; padding: 0 8px; border-radius: 7px;
+    border: 1px solid var(--line); background: transparent;
+    color: var(--ink-2); font-size: 11px; cursor: pointer;
+  }
+  .btn-restore:hover { border-color: var(--invalid); color: var(--invalid); }
+  .btn-restore:disabled { opacity: .55; cursor: wait; }
+  [data-action="expand"] .icon { transition: transform .16s ease; }
+  [data-action="expand"][aria-expanded="true"] .icon { transform: rotate(180deg); }
+
+  .detail-row td { padding: 0; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .detail {
+    display: grid; grid-template-columns: 1.05fr .95fr 1.25fr;
+    gap: 26px; padding: 20px 22px 22px;
+  }
+  .detail-block { min-width: 0; }
+  .detail h3 { margin: 0 0 10px; font-size: 11px; font-weight: 600; color: var(--muted); }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; font-size: 12px; }
+  .kv dt { color: var(--muted); white-space: nowrap; }
+  .kv dd {
+    margin: 0; font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  .detail-error { border-left: 1px solid var(--line); padding-left: 22px; }
+  .detail-error p {
+    margin: 0; font-size: 12px; line-height: 1.6; color: var(--ink-2);
+    overflow-wrap: anywhere; white-space: pre-wrap;
+  }
+  .detail-id {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 12px; color: var(--muted); font-size: 11px;
+  }
+  .detail-id code {
+    padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line);
+    background: var(--surface); font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-2); overflow-wrap: anywhere;
+  }
+
+  .message-row td { padding: 0; border-bottom: 0; }
+  .empty-cell { padding: 46px 22px !important; text-align: center; }
+  .empty-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .empty-sub { margin-top: 5px; font-size: 12px; color: var(--muted); }
+
+  /* footer meta */
+  .meta {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+    gap: 14px 22px; margin-top: 26px; padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .meta-item { min-width: 0; }
+  .meta-label { display: block; margin-bottom: 3px; font-size: 10.5px; color: var(--muted); }
+  .meta-value {
+    display: block; font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-2); overflow-wrap: anywhere; font-variant-numeric: tabular-nums;
+  }
+
+  /* toast + tooltip */
+  .toast {
+    position: fixed; right: 22px; bottom: 22px; z-index: 50;
+    max-width: min(380px, calc(100vw - 32px));
+    padding: 11px 14px; border-radius: 10px;
+    background: var(--ink); color: var(--bg); font-size: 12.5px; line-height: 1.45;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, .24);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .toast.show { opacity: 1; transform: none; }
+  .toast.error { background: var(--invalid); color: #fff; }
+  .tooltip {
+    position: fixed; z-index: 60; max-width: 280px;
+    padding: 7px 9px; border-radius: 7px;
+    background: var(--ink); color: var(--bg);
+    font-size: 11px; line-height: 1.45;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .22); pointer-events: none;
+  }
+
+  /* entrance */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(9px); }
+    to { opacity: 1; transform: none; }
+  }
+  .topbar, .hero, .vitals, .keys-panel, .meta {
+    animation: rise .52s cubic-bezier(.2, .7, .3, 1) both;
+  }
+  .hero { animation-delay: .04s; }
+  .vitals { animation-delay: .09s; }
+  .keys-panel { animation-delay: .14s; }
+  .meta { animation-delay: .18s; }
+
+  /* responsive */
+  @media (max-width: 980px) {
+    .hero { grid-template-columns: 1fr; gap: 26px; }
+    .hero-chart { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; padding-top: 24px; }
+    .vitals { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .vital { padding: 14px 16px; }
+    .vital:first-child { padding-left: 16px; }
+    .vital:nth-child(3n + 1) { border-left: 0; }
+    .vital:nth-child(n + 4) { border-top: 1px solid var(--line); }
+  }
+  @media (max-width: 760px) {
+    .page { padding: 20px 16px 40px; }
+    .topbar { align-items: flex-start; }
+    .top-actions { width: 100%; justify-content: flex-start; }
+    .updated { flex: 0 0 auto; order: 0; margin-right: auto; }
+    .hero { padding: 24px 20px; border-radius: 20px; }
+    .panel-head { align-items: flex-start; padding: 18px 16px 14px; }
+    .panel-tools { width: 100%; }
+    .search { flex: 1 1 100%; }
+    .search input { width: 100%; }
+    .select-wrap { flex: 1 1 auto; }
+    .select-wrap select { width: 100%; }
+    .filters { padding: 0 16px 12px; }
+    .table-wrap { overflow: visible; }
+    table, thead, tbody, tr, td { display: block; }
+    thead { display: none; }
+    tbody { padding: 12px; }
+    tr.key-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "state actions"
+        "key key"
+        "balance balance"
+        "checked next"
+        "load stats"
+        "error error";
+      gap: 10px 14px;
+      margin: 0 0 10px; padding: 14px;
+      border: 1px solid var(--line); border-radius: 14px;
+      background: var(--surface);
+    }
+    tr.key-row:hover { background: var(--surface); }
+    tr.key-row td { padding: 0; border: 0; }
+    .cell-state { grid-area: state; }
+    .cell-key { grid-area: key; padding-top: 10px !important; border-top: 1px solid var(--line) !important; }
+    .cell-balance { grid-area: balance; }
+    .cell-load { grid-area: load; }
+    .cell-checked { grid-area: checked; }
+    .cell-next { grid-area: next; }
+    .cell-stats { grid-area: stats; }
+    .cell-error { grid-area: error; max-width: none; white-space: normal; }
+    .error-mobile-label {
+      display: block; margin-bottom: 2px;
+      font-size: 10px; color: var(--muted); white-space: nowrap;
+    }
+    .error-text {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; white-space: normal;
+    }
+    .cell-actions { grid-area: actions; }
+    .cell-checked::before, .cell-next::before, .cell-load::before, .cell-stats::before {
+      content: attr(data-label); display: block; margin-bottom: 2px;
+      font-size: 10px; color: var(--muted); white-space: nowrap;
+    }
+    .balance-bar { width: 100%; max-width: 240px; }
+    .detail-row { display: block; margin: -4px 0 10px; }
+    .detail-row td { padding: 0 0 10px; }
+    .detail {
+      grid-template-columns: 1fr; gap: 18px;
+      padding: 16px; border: 1px solid var(--line);
+      border-radius: 14px; background: var(--surface-2);
+    }
+    .detail-error {
+      grid-column: 1 / -1; border-left: 0; padding-left: 0;
+      border-top: 1px solid var(--line); padding-top: 14px;
+    }
+    .empty-cell { padding: 36px 16px !important; }
+    .message-row { display: block; }
+    .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .toast { right: 16px; bottom: 16px; left: 16px; max-width: none; }
+  }
+  @media (max-width: 620px) {
+    .vitals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vital { padding: 14px 14px; border-top: 1px solid var(--line); }
+    .vital:nth-child(n) { border-left: 0; }
+    .vital:nth-child(even) { border-left: 1px solid var(--line); }
+    .vital:nth-child(-n + 2) { border-top: 0; }
+    .vital:first-child { padding-left: 14px; }
+    .hero-balance { font-size: clamp(42px, 13vw, 58px); }
+    .btn .btn-label { display: none; }
+    .btn.primary { width: 38px; padding: 0; }
+    .brand-text strong { font-size: 21px; }
+    .meta { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 420px) {
+    .top-actions { gap: 6px; }
+    .updated { order: 0; }
+    .meta { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: .01ms !important;
+    }
   }
 </style>
 </head>
 <body>
-<main class="wrap">
-  <header class="top">
-    <div>
-      <h1><span class="logo">◆</span> dspool <span class="pill" id="health">连接中</span></h1>
-      <p class="sub"><span id="listen">—</span> · 路由策略 <code id="strategy">—</code> · <span id="uptime">—</span></p>
-    </div>
-    <div class="actions">
-      <span class="muted small" id="updated">加载中…</span>
-      <button id="refresh" type="button">刷新余额</button>
+<svg class="sr-only" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute">
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-.8 4.2"/><path d="M20 4v7h-7"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></symbol>
+</svg>
+
+<main class="page">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="dspool 控制台">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <rect x="3" y="3" width="26" height="26" rx="8"/>
+          <path d="M10 21v-6M16 22V10M22 18v-3"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <strong>dspool</strong>
+        <span class="brand-sub">本地 DeepSeek 号池 <code class="addr" id="addr">—</code></span>
+      </span>
+    </a>
+    <div class="top-actions">
+      <span class="updated" id="updated">正在连接…</span>
+      <button class="live-toggle" id="live-btn" type="button" aria-pressed="true" aria-label="暂停自动刷新">
+        <span class="live-dot"></span><span id="live-label">实时</span>
+      </button>
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="切换主题"></button>
+      <button class="btn primary" id="refresh-btn" type="button" aria-label="刷新余额">
+        <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+        <span class="btn-label" id="refresh-label">刷新余额</span>
+      </button>
     </div>
   </header>
 
-  <section class="cards" aria-label="号池概览">
-    <div class="card hot"><span class="k">热池</span><strong id="c-hot">–</strong><span class="hint">状态 hot（冷却另计）</span></div>
-    <div class="card cold"><span class="k">冷池</span><strong id="c-cold">–</strong><span class="hint">余额不足，等待充值</span></div>
-    <div class="card invalid"><span class="k">已移除</span><strong id="c-invalid">–</strong><span class="hint">401 / 吊销</span></div>
-    <div class="card cooling"><span class="k">冷却中</span><strong id="c-cooling">–</strong><span class="hint">429 / 临时错误</span></div>
-    <div class="card"><span class="k">探活中</span><strong id="c-probing">–</strong><span class="hint">等待余额检查</span></div>
-    <div class="card"><span class="k">总数</span><strong id="c-total">–</strong><span class="hint">配置内 key</span></div>
+  <div class="banner" id="banner" role="status" hidden>
+    <span class="banner-dot"></span>
+    <span class="banner-text" id="banner-text"></span>
+    <button class="banner-action" id="banner-action" type="button" hidden>重试</button>
+  </div>
+
+  <section class="hero" aria-labelledby="hero-label">
+    <div class="hero-main">
+      <p class="section-label" id="hero-label">热池余额</p>
+      <p class="hero-balance" id="hero-balance">—</p>
+      <p class="hero-secondary" id="hero-secondary"></p>
+      <p class="hero-sub" id="hero-sub">正在读取号池状态…</p>
+      <div class="hero-status" id="hero-status" data-tone="neutral">
+        <span class="status-dot"></span><strong>连接中</strong>
+      </div>
+      <p class="hero-note" id="hero-note"></p>
+    </div>
+    <div class="hero-chart" aria-labelledby="chart-title">
+      <div class="chart-head">
+        <div>
+          <h2 id="chart-title">余额分布</h2>
+          <p id="chart-sub">按热 key 余额排序</p>
+        </div>
+        <span class="chart-currency" id="chart-currency">—</span>
+      </div>
+      <div class="bar-chart" id="bar-chart">
+        <p class="chart-empty">正在读取余额…</p>
+      </div>
+    </div>
   </section>
 
-  <section class="panel">
-    <div class="panel-head">
-      <h2>上游 Keys</h2>
-      <span class="muted small" id="auto">每 5 秒自动刷新</span>
+  <section class="vitals" aria-label="号池概览">
+    <div class="vital">
+      <span class="vital-label"><i class="dot hot"></i>热池</span>
+      <strong id="v-hot">—</strong>
+      <span class="vital-sub" id="v-hot-sub">可接流量</span>
     </div>
+    <div class="vital">
+      <span class="vital-label"><i class="dot cooling"></i>冷却中</span>
+      <strong id="v-cooling">—</strong>
+      <span class="vital-sub" id="v-cooling-sub">临时不可用</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label"><i class="dot cold"></i>冷池</span>
+      <strong id="v-cold">—</strong>
+      <span class="vital-sub" id="v-cold-sub">等待充值</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label"><i class="dot probing"></i>探活中</span>
+      <strong id="v-probing">—</strong>
+      <span class="vital-sub" id="v-probing-sub">余额检查中</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label"><i class="dot invalid"></i>已移除</span>
+      <strong id="v-invalid">—</strong>
+      <span class="vital-sub" id="v-invalid-sub">401 / 403</span>
+    </div>
+    <div class="vital">
+      <span class="vital-label">成功率</span>
+      <strong id="v-rate">—</strong>
+      <span class="vital-sub" id="v-rate-sub">暂无请求</span>
+    </div>
+  </section>
+
+  <section class="keys-panel" aria-labelledby="keys-title">
+    <div class="panel-head">
+      <div>
+        <h2 id="keys-title">Keys</h2>
+        <p id="keys-summary">正在读取…</p>
+      </div>
+      <div class="panel-tools">
+        <label class="search">
+          <span class="sr-only">搜索 key</span>
+          <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input id="search" type="search" placeholder="搜索名称、掩码、错误…" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="select-wrap">
+          <span class="sr-only">排序</span>
+          <select id="sort">
+            <option value="state">状态优先</option>
+            <option value="balance-asc">余额从低到高</option>
+            <option value="balance-desc">余额从高到低</option>
+            <option value="checked">最近检查</option>
+            <option value="name">名称</option>
+          </select>
+          <svg class="icon" aria-hidden="true"><use href="#i-chevron"></use></svg>
+        </label>
+      </div>
+    </div>
+    <div class="filters" id="filters" role="group" aria-label="按状态筛选"></div>
     <div class="table-wrap">
-      <table>
+      <table aria-label="DeepSeek key 列表">
         <thead>
           <tr>
             <th scope="col">状态</th>
-            <th scope="col">名称</th>
             <th scope="col">Key</th>
             <th scope="col">余额</th>
             <th scope="col">并发</th>
             <th scope="col">最近检查</th>
             <th scope="col">下次检查</th>
-            <th scope="col">成功 / 尝试</th>
+            <th scope="col">成功率</th>
             <th scope="col">最近错误</th>
-            <th scope="col"></th>
+            <th scope="col"><span class="sr-only">操作</span></th>
           </tr>
         </thead>
         <tbody id="rows">
-          <tr><td colspan="10" class="empty">加载中…</td></tr>
+          <tr class="message-row"><td class="empty-cell" colspan="9"><div class="empty-title">正在连接 daemon…</div></td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
-  <footer class="foot">
-    <span>仅限本机使用 · dashboard 不包含完整 key</span>
-    <span id="config">—</span>
-  </footer>
+  <footer class="meta" id="meta" aria-label="daemon 信息"></footer>
 </main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script>
 (() => {
-  const stateLabels = { hot: "热池", cold: "冷池", invalid: "已移除", probing: "探活中" };
+  'use strict';
+
   const $ = (id) => document.getElementById(id);
-  let busy = false;
+  const nf2 = new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const nf0 = new Intl.NumberFormat('zh-CN');
+  const SYMBOL = { CNY: '¥', USD: '$' };
+  const ZERO_MIN = Date.UTC(2000, 0, 1);
+  const STATE_META = {
+    hot: { label: '热池' },
+    cooling: { label: '冷却中' },
+    cold: { label: '冷池' },
+    invalid: { label: '已移除' },
+    probing: { label: '探活中' },
+  };
+  const FILTERS = [
+    { id: 'all', label: '全部' },
+    { id: 'hot', label: '热池', state: 'hot' },
+    { id: 'cooling', label: '冷却中', state: 'cooling' },
+    { id: 'cold', label: '冷池', state: 'cold' },
+    { id: 'probing', label: '探活中', state: 'probing' },
+    { id: 'invalid', label: '已移除', state: 'invalid' },
+  ];
+  const STATE_ORDER = { hot: 0, cooling: 1, cold: 2, probing: 3, invalid: 4 };
 
-  function setText(id, value) {
-    const node = $(id);
-    if (node) node.textContent = value == null ? "—" : String(value);
+  const ui = {
+    data: null,
+    derived: null,
+    error: '',
+    lastUpdated: 0,
+    live: storageGet('dspool-live') !== '0',
+    filter: 'all',
+    query: '',
+    sort: storageGet('dspool-sort') || 'state',
+    expanded: new Set(),
+    loading: false,
+    fetchSeq: 0,
+    filters: new Map(),
+    timer: null,
+    toastTimer: null,
+    chartSig: '',
+  };
+
+  function storageGet(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
   }
-
-  function isZeroTime(value) {
-    if (!value) return true;
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) || d.getUTCFullYear() <= 1;
+  function storageSet(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) {}
   }
-
-  function formatDate(value) {
-    if (isZeroTime(value)) return "—";
-    const d = new Date(value);
-    return d.toLocaleString("zh-CN", { hour12: false });
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = String(text);
+    return node;
   }
-
+  function icon(name) {
+    return '<svg class="icon" aria-hidden="true"><use href="#i-' + name + '"></use></svg>';
+  }
+  function timeMs(value) {
+    if (!value) return null;
+    const t = Date.parse(value);
+    return Number.isFinite(t) && t > ZERO_MIN ? t : null;
+  }
+  function fmtAbsolute(value) {
+    const t = timeMs(value);
+    if (t === null) return '—';
+    return new Date(t).toLocaleString('zh-CN', {
+      hour12: false, year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+  }
+  function inWords(seconds) {
+    if (seconds < 60) return seconds + ' 秒后';
+    if (seconds < 3600) return Math.round(seconds / 60) + ' 分钟后';
+    if (seconds < 86400) return Math.round(seconds / 3600) + ' 小时后';
+    return Math.round(seconds / 86400) + ' 天后';
+  }
   function ago(value) {
-    if (isZeroTime(value)) return "—";
-    const d = new Date(value);
-    const seconds = Math.round((Date.now() - d.getTime()) / 1000);
-    if (!Number.isFinite(seconds)) return "—";
-    if (seconds < 0) {
-      const future = Math.abs(seconds);
-      if (future < 60) return future + " 秒后";
-      if (future < 3600) return Math.round(future / 60) + " 分钟后";
-      return Math.round(future / 3600) + " 小时后";
+    const t = timeMs(value);
+    if (t === null) return '—';
+    const s = Math.round((Date.now() - t) / 1000);
+    if (s < 0) return inWords(-s);
+    if (s < 5) return '刚刚';
+    if (s < 60) return s + ' 秒前';
+    if (s < 3600) return Math.round(s / 60) + ' 分钟前';
+    if (s < 86400) return Math.round(s / 3600) + ' 小时前';
+    return Math.round(s / 86400) + ' 天前';
+  }
+  function until(value) {
+    const t = timeMs(value);
+    if (t === null) return '—';
+    const s = Math.round((t - Date.now()) / 1000);
+    if (s <= 0) return '即将';
+    return inWords(s);
+  }
+  function fmtUptime(seconds) {
+    const s = Math.max(0, Math.round(Number(seconds) || 0));
+    if (s < 60) return s + ' 秒';
+    if (s < 3600) return Math.floor(s / 60) + ' 分钟';
+    if (s < 86400) {
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      return m ? h + ' 小时 ' + m + ' 分钟' : h + ' 小时';
     }
-    if (seconds < 5) return "刚刚";
-    if (seconds < 60) return seconds + " 秒前";
-    if (seconds < 3600) return Math.round(seconds / 60) + " 分钟前";
-    return Math.round(seconds / 3600) + " 小时前";
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    return h ? d + ' 天 ' + h + ' 小时' : d + ' 天';
+  }
+  function shortDuration(value) {
+    const text = String(value || '');
+    if (!text) return '';
+    return text
+      .replace(/^(\d+)h0m0s$/, '$1h')
+      .replace(/^(\d+)m0s$/, '$1m')
+      .replace(/^(\d+)h0m$/, '$1h');
+  }
+  function money(value, currency, digits) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    const text = new Intl.NumberFormat('zh-CN', {
+      minimumFractionDigits: digits === undefined ? 2 : digits,
+      maximumFractionDigits: digits === undefined ? 2 : digits,
+    }).format(n);
+    const symbol = SYMBOL[currency] || '';
+    if (symbol) return symbol + text;
+    return currency ? text + ' ' + currency : text;
+  }
+  function moneyParts(value, currency) {
+    const n = Number(value);
+    const text = nf2.format(Number.isFinite(n) ? n : 0);
+    const dot = text.lastIndexOf('.');
+    return {
+      symbol: SYMBOL[currency] || (currency || ''),
+      int: dot >= 0 ? text.slice(0, dot) : text,
+      dec: dot >= 0 ? text.slice(dot + 1) : '00',
+    };
+  }
+  function isCooling(key) {
+    if (key.state !== 'hot') return false;
+    const t = timeMs(key.cooldown_until);
+    return t !== null && t > Date.now();
+  }
+  function visualState(key) {
+    if (isCooling(key)) return 'cooling';
+    return STATE_META[key.state] ? key.state : 'probing';
+  }
+  function getStats(key) {
+    return key.stats && typeof key.stats === 'object' ? key.stats : {};
+  }
+  function derive(data) {
+    const keys = Array.isArray(data && data.keys) ? data.keys : [];
+    const counts = { total: keys.length, hot: 0, cooling: 0, cold: 0, probing: 0, invalid: 0 };
+    let attempts = 0;
+    let successes = 0;
+    for (const key of keys) {
+      const state = visualState(key);
+      if (counts[state] !== undefined) counts[state] += 1;
+      const stats = getStats(key);
+      attempts += Number(stats.attempts) || 0;
+      successes += Number(stats.successes) || 0;
+    }
+    counts.hotTotal = counts.hot + counts.cooling;
+    const totals = {};
+    for (const key of keys) {
+      if (key.state !== 'hot' || !key.balance_known) continue;
+      const currency = key.currency || 'CNY';
+      const balance = Number(key.balance);
+      if (!Number.isFinite(balance)) continue;
+      const group = totals[currency] || (totals[currency] = { currency, total: 0, keys: [] });
+      group.total += balance;
+      group.keys.push(key);
+    }
+    const currencies = Object.values(totals).sort((a, b) => b.total - a.total);
+    return {
+      keys,
+      counts,
+      attempts,
+      successes,
+      rate: attempts > 0 ? successes / attempts : null,
+      currencies,
+      primary: currencies[0] || null,
+    };
   }
 
-  function formatBalance(key) {
-    if (!key.balance_known) return "—";
-    const n = Number(key.balance);
-    if (!Number.isFinite(n)) return String(key.balance);
-    return n.toFixed(4) + " " + (key.currency || "");
+  function setStatus(label, tone) {
+    const node = $('hero-status');
+    node.dataset.tone = tone;
+    const strong = node.querySelector('strong');
+    if (strong) strong.textContent = label;
   }
 
-  function cell(text, className) {
-    const td = document.createElement("td");
-    if (className) td.className = className;
-    if (text != null) td.textContent = String(text);
-    return td;
+  function renderHero(data, model) {
+    const balance = $('hero-balance');
+    balance.replaceChildren();
+    const primary = model.primary;
+    const known = model.keys.some((key) => key.state === 'hot' && key.balance_known);
+    if (known && primary) {
+      balance.classList.remove('empty');
+      const parts = moneyParts(primary.total, primary.currency);
+      balance.append(
+        el('span', 'cur', parts.symbol),
+        el('span', 'int', parts.int),
+        el('span', 'dec', '.' + parts.dec)
+      );
+      balance.setAttribute('aria-label', '热池余额 ' + money(primary.total, primary.currency));
+    } else {
+      balance.classList.add('empty');
+      balance.textContent = '—';
+      balance.setAttribute('aria-label', '热池余额未知');
+    }
+
+    const others = model.currencies.slice(1).filter((group) => group.total > 0);
+    $('hero-secondary').textContent = others.length
+      ? '另有 ' + others.map((group) => money(group.total, group.currency)).join('，')
+      : '';
+
+    const counts = model.counts;
+    const parts = [];
+    if (counts.hotTotal) parts.push(counts.hotTotal + ' 个热 key');
+    if (counts.cooling) parts.push(counts.cooling + ' 个冷却中');
+    if (counts.cold) parts.push(counts.cold + ' 个冷 key');
+    if (counts.probing) parts.push(counts.probing + ' 个探活中');
+    if (counts.invalid) parts.push(counts.invalid + ' 个已移除');
+    if (!parts.length) parts.push('还没有 key');
+    $('hero-sub').textContent = parts.join('，');
+
+    let tone = 'neutral';
+    let label = '连接中';
+    if (counts.total === 0) {
+      label = '没有 key';
+    } else if (counts.hot > 0) {
+      tone = 'good';
+      label = '运行中';
+    } else if (counts.cold > 0) {
+      tone = 'warn';
+      label = '冷池待充值';
+    } else if (counts.probing > 0) {
+      label = '探活中';
+    } else {
+      tone = 'bad';
+      label = '没有可用 key';
+    }
+    setStatus(label, tone);
+
+    const intervals = data.intervals || {};
+    const notes = [];
+    if (intervals.balance) notes.push('每 ' + shortDuration(intervals.balance) + ' 复查余额');
+    if (intervals.cold) notes.push('冷池每 ' + shortDuration(intervals.cold) + ' 复查');
+    let note = notes.length ? notes.join('，') + '。' : '';
+    note += '余额会随外部使用变化。';
+    if (counts.invalid) note += ' 已移除的 key 可以在下方恢复。';
+    $('hero-note').textContent = note;
   }
 
-  function renderRows(keys) {
-    const tbody = $("rows");
-    tbody.replaceChildren();
-    if (!Array.isArray(keys) || keys.length === 0) {
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 10;
-      td.className = "empty";
-      td.textContent = "没有配置 key";
-      tr.appendChild(td);
-      tbody.appendChild(tr);
+  function renderChart(model) {
+    const chart = $('bar-chart');
+    const primary = model.primary;
+    const keys = primary
+      ? primary.keys
+          .filter((key) => Number(key.balance) > 0)
+          .sort((a, b) => Number(b.balance) - Number(a.balance))
+      : [];
+    $('chart-currency').textContent = primary ? primary.currency : '—';
+    $('chart-sub').textContent = keys.length
+      ? (keys.length > 6 ? '前 6 个热 key，按余额排序' : keys.length + ' 个热 key，按余额排序')
+      : '暂无可显示余额';
+
+    const shown = keys.slice(0, 6);
+    const signature = shown
+      .map((key) => key.id + ':' + key.balance + ':' + key.currency + ':' + (key.label || ''))
+      .join('|');
+    if (signature === ui.chartSig) return;
+    ui.chartSig = signature;
+    chart.replaceChildren();
+    if (!shown.length) {
+      chart.append(el('p', 'chart-empty', '没有可显示的热 key 余额。'));
+      return;
+    }
+    const max = Math.max.apply(null, shown.map((key) => Number(key.balance)).concat([1]));
+    for (const key of shown) {
+      const balance = Number(key.balance);
+      const label = key.label || key.mask || key.id;
+      const tip = label + '，' + (key.mask || '无掩码') + '，余额 ' + money(balance, key.currency);
+      const row = el('div', 'bar-row');
+      row.tabIndex = 0;
+      row.dataset.tip = tip;
+      row.setAttribute('aria-label', tip);
+      const name = el('span', 'bar-label', label);
+      name.title = label;
+      const track = el('span', 'bar-track');
+      const fill = el('span', 'bar-fill');
+      fill.style.width = Math.max(2, (balance / max) * 100) + '%';
+      track.append(fill);
+      row.append(name, track, el('span', 'bar-value', money(balance, key.currency)));
+      attachTooltip(row, tip);
+      chart.append(row);
+    }
+  }
+
+  function setVital(id, value, sub) {
+    const valueNode = $('v-' + id);
+    const subNode = $('v-' + id + '-sub');
+    if (valueNode) {
+      valueNode.textContent = value;
+      valueNode.classList.toggle('zero', value === '0' || value === '—');
+    }
+    if (subNode) subNode.textContent = sub;
+  }
+
+  function renderVitals(model) {
+    const counts = model.counts;
+    setVital('hot', nf0.format(counts.hotTotal), counts.hot + ' 个可接流量');
+    setVital('cooling', nf0.format(counts.cooling), counts.cooling ? '429 或临时错误' : '暂无');
+    setVital('cold', nf0.format(counts.cold), counts.cold ? '充值后自动回热' : '暂无');
+    setVital('probing', nf0.format(counts.probing), counts.probing ? '等待余额检查' : '暂无');
+    setVital('invalid', nf0.format(counts.invalid), counts.invalid ? '可手动恢复' : '暂无');
+    setVital(
+      'rate',
+      model.rate === null ? '—' : Math.round(model.rate * 100) + '%',
+      model.attempts
+        ? nf0.format(model.successes) + ' / ' + nf0.format(model.attempts) + ' 次尝试'
+        : '暂无请求'
+    );
+  }
+
+  function renderVitalsEmpty() {
+    ['hot', 'cooling', 'cold', 'probing', 'invalid', 'rate'].forEach((id) => setVital(id, '—', ' '));
+  }
+
+  function initFilters() {
+    const wrap = $('filters');
+    wrap.replaceChildren();
+    for (const filter of FILTERS) {
+      const button = el('button', 'chip');
+      button.type = 'button';
+      button.dataset.filter = filter.id;
+      if (filter.state) button.append(el('i', 'dot ' + filter.state));
+      button.append(el('span', 'chip-label', filter.label), el('span', 'chip-count', '0'));
+      button.addEventListener('click', () => setFilter(filter.id));
+      ui.filters.set(filter.id, button);
+      wrap.append(button);
+    }
+  }
+
+  function updateFilters(counts) {
+    for (const filter of FILTERS) {
+      const button = ui.filters.get(filter.id);
+      if (!button) continue;
+      const count = filter.id === 'all' ? counts.total : (counts[filter.id] || 0);
+      const countNode = button.querySelector('.chip-count');
+      if (countNode) countNode.textContent = nf0.format(count);
+      const active = ui.filter === filter.id;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+  }
+
+  function setFilter(id) {
+    ui.filter = id;
+    if (ui.derived) updateFilters(ui.derived.counts);
+    renderRows(ui.derived);
+  }
+
+  function matches(key, query) {
+    const stats = getStats(key);
+    const parts = [
+      key.label, key.mask, key.id, key.last_error, stats.last_error,
+      STATE_META[visualState(key)] ? STATE_META[visualState(key)].label : '',
+    ];
+    return parts.some((part) => part && String(part).toLowerCase().includes(query));
+  }
+
+  function comparator(kind) {
+    return (a, b) => {
+      if (kind === 'state') {
+        const order = (STATE_ORDER[visualState(a)] || 0) - (STATE_ORDER[visualState(b)] || 0);
+        if (order !== 0) return order;
+      }
+      if (kind === 'state' || kind === 'balance-asc' || kind === 'balance-desc') {
+        const av = a.balance_known ? Number(a.balance) : null;
+        const bv = b.balance_known ? Number(b.balance) : null;
+        if (av === null && bv !== null) return 1;
+        if (av !== null && bv === null) return -1;
+        if (av !== null && bv !== null && av !== bv) {
+          return kind === 'balance-desc' ? bv - av : av - bv;
+        }
+      }
+      if (kind === 'checked') {
+        const at = timeMs(a.last_checked) || 0;
+        const bt = timeMs(b.last_checked) || 0;
+        if (at !== bt) return bt - at;
+      }
+      const an = a.label || a.mask || a.id;
+      const bn = b.label || b.mask || b.id;
+      return String(an).localeCompare(String(bn), 'zh-CN', { numeric: true });
+    };
+  }
+
+  function maxBalances(keys) {
+    const out = {};
+    for (const key of keys) {
+      if (!key.balance_known) continue;
+      const currency = key.currency || '';
+      const balance = Number(key.balance);
+      if (!Number.isFinite(balance)) continue;
+      if (!(currency in out) || balance > out[currency]) out[currency] = balance;
+    }
+    return out;
+  }
+
+  function stateBadge(state) {
+    const meta = STATE_META[state] || STATE_META.probing;
+    const badge = el('span', 'badge ' + state);
+    badge.append(el('i', 'dot ' + state), el('span', '', meta.label));
+    return badge;
+  }
+
+  function detailId(id) {
+    return 'detail-' + String(id).replace(/[^a-zA-Z0-9_-]/g, '_');
+  }
+
+  function buildRow(key, maxByCurrency) {
+    const state = visualState(key);
+    const stats = getStats(key);
+    const expanded = ui.expanded.has(key.id);
+    const row = el('tr', 'key-row is-' + state);
+    row.dataset.key = key.id;
+
+    const stateCell = el('td', 'cell-state');
+    stateCell.dataset.label = '状态';
+    stateCell.append(stateBadge(state));
+
+    const keyCell = el('td', 'cell-key');
+    keyCell.dataset.label = 'Key';
+    const label = el('div', 'key-label', key.label || key.mask || key.id);
+    label.title = key.label || key.id;
+    keyCell.append(label);
+    if (key.mask) keyCell.append(el('div', 'key-mask', key.mask));
+
+    const balanceCell = el('td', 'cell-balance');
+    balanceCell.dataset.label = '余额';
+    const balanceValue = el(
+      'span',
+      'balance-value' + (key.balance_known ? '' : ' muted'),
+      key.balance_known ? money(key.balance, key.currency) : '—'
+    );
+    const bar = el('span', 'balance-bar');
+    const max = maxByCurrency[key.currency || ''] || 0;
+    if (key.balance_known && max > 0) {
+      const fill = el('span', 'balance-fill');
+      fill.style.width = Math.min(100, Math.max(0, (Number(key.balance) / max) * 100)) + '%';
+      bar.append(fill);
+    } else {
+      bar.classList.add('unknown');
+    }
+    const balanceWrap = el('div', 'balance-wrap');
+    balanceWrap.append(balanceValue, bar);
+    balanceCell.append(balanceWrap);
+
+    const loadCell = el('td', 'cell-load', String(key.in_flight || 0));
+    loadCell.dataset.label = '并发';
+
+    const checkedCell = el('td', 'cell-checked');
+    checkedCell.dataset.label = '最近检查';
+    const checked = el('span', 'time js-ago', ago(key.last_checked));
+    checked.dataset.time = key.last_checked || '';
+    checked.title = fmtAbsolute(key.last_checked);
+    checkedCell.append(checked);
+
+    const nextCell = el('td', 'cell-next');
+    nextCell.dataset.label = '下次检查';
+    let next;
+    if (state === 'invalid') {
+      next = el('span', 'time muted', '—');
+    } else if (state === 'cooling') {
+      next = el('span', 'time countdown', until(key.cooldown_until));
+      next.dataset.until = key.cooldown_until || '';
+      next.dataset.kind = 'cooldown';
+      next.title = '冷却至 ' + fmtAbsolute(key.cooldown_until);
+    } else {
+      next = el('span', 'time countdown', until(key.next_check));
+      next.dataset.until = key.next_check || '';
+      next.dataset.kind = 'next';
+      next.title = fmtAbsolute(key.next_check);
+    }
+    nextCell.append(next);
+
+    const statsCell = el('td', 'cell-stats');
+    statsCell.dataset.label = '成功率';
+    const attempts = Number(stats.attempts) || 0;
+    const successes = Number(stats.successes) || 0;
+    statsCell.append(
+      el('div', 'stat-main', attempts ? Math.round((successes / attempts) * 100) + '%' : '—'),
+      el('div', 'stat-sub', attempts ? nf0.format(successes) + ' / ' + nf0.format(attempts) : '暂无请求')
+    );
+
+    const errorText = key.last_error || stats.last_error || '';
+    const errorCell = el('td', 'cell-error');
+    errorCell.dataset.label = '最近错误';
+    errorCell.title = errorText || '';
+    errorCell.append(
+      el('span', 'error-mobile-label', '最近错误'),
+      el('span', 'error-text', errorText || '—')
+    );
+
+    const actionsCell = el('td', 'cell-actions');
+    const actions = el('div', 'row-actions');
+    if (state === 'invalid') {
+      const restore = el('button', 'btn-restore', '恢复');
+      restore.type = 'button';
+      restore.dataset.action = 'restore';
+      restore.dataset.key = key.id;
+      restore.addEventListener('click', (event) => {
+        event.stopPropagation();
+        restoreKey(key, restore);
+      });
+      actions.append(restore);
+    }
+    const expand = el('button', 'icon-btn small');
+    expand.type = 'button';
+    expand.dataset.action = 'expand';
+    expand.dataset.key = key.id;
+    expand.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    expand.setAttribute('aria-controls', detailId(key.id));
+    expand.setAttribute('aria-label', expanded ? '收起 ' + (key.label || key.id) + ' 详情' : '查看 ' + (key.label || key.id) + ' 详情');
+    expand.innerHTML = icon('chevron');
+    expand.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleExpanded(key.id);
+    });
+    actions.append(expand);
+    actionsCell.append(actions);
+
+    row.append(
+      stateCell, keyCell, balanceCell, loadCell, checkedCell,
+      nextCell, statsCell, errorCell, actionsCell
+    );
+    row.addEventListener('click', (event) => {
+      if (event.target.closest('button, a, input, select, textarea')) return;
+      toggleExpanded(key.id);
+    });
+    return row;
+  }
+
+  function buildDetail(key) {
+    const stats = getStats(key);
+    const row = el('tr', 'detail-row');
+    row.id = detailId(key.id);
+    const cell = el('td');
+    cell.colSpan = 9;
+    const detail = el('div', 'detail');
+    detail.setAttribute('role', 'region');
+    detail.setAttribute('aria-label', 'key 详情');
+
+    const statsBlock = el('div', 'detail-block');
+    statsBlock.append(el('h3', '', '请求统计'));
+    const statsList = el('dl', 'kv');
+    const statsRows = [
+      ['尝试', stats.attempts], ['成功', stats.successes],
+      ['401 / 403', stats.auth_errors], ['余额不足', stats.insufficient_balance],
+      ['429', stats.rate_limited], ['5xx', stats.server_errors],
+      ['网络错误', stats.network_errors],
+    ];
+    for (const [label, value] of statsRows) {
+      statsList.append(el('dt', '', label), el('dd', '', nf0.format(Number(value) || 0)));
+    }
+    statsBlock.append(statsList);
+
+    const timeBlock = el('div', 'detail-block');
+    timeBlock.append(el('h3', '', '时间'));
+    const timeList = el('dl', 'kv');
+    const timeRows = [
+      ['最近使用', fmtAbsolute(stats.last_used)],
+      ['最近检查', fmtAbsolute(key.last_checked)],
+      ['下次检查', fmtAbsolute(key.next_check)],
+      ['加入时间', fmtAbsolute(key.added_at)],
+      ['冷却至', fmtAbsolute(key.cooldown_until)],
+    ];
+    for (const [label, value] of timeRows) {
+      timeList.append(el('dt', '', label), el('dd', '', value));
+    }
+    timeBlock.append(timeList);
+
+    const errorBlock = el('div', 'detail-block detail-error');
+    errorBlock.append(el('h3', '', '最近错误'));
+    errorBlock.append(el('p', '', key.last_error || stats.last_error || '没有记录到错误。'));
+    const idRow = el('div', 'detail-id');
+    idRow.append(el('span', '', 'Key ID'), el('code', '', key.id));
+    const copy = el('button', 'icon-btn small');
+    copy.type = 'button';
+    copy.setAttribute('aria-label', '复制 Key ID');
+    copy.innerHTML = icon('copy');
+    copy.addEventListener('click', (event) => {
+      event.stopPropagation();
+      copyText(key.id);
+    });
+    idRow.append(copy);
+    errorBlock.append(idRow);
+
+    detail.append(statsBlock, timeBlock, errorBlock);
+    cell.append(detail);
+    row.append(cell);
+    return row;
+  }
+
+  function messageRow(title, subtitle) {
+    const row = el('tr', 'message-row');
+    const cell = el('td', 'empty-cell');
+    cell.colSpan = 9;
+    cell.append(el('div', 'empty-title', title));
+    if (subtitle) cell.append(el('div', 'empty-sub', subtitle));
+    row.append(cell);
+    return row;
+  }
+
+  function renderRows(model) {
+    const body = $('rows');
+    const active = document.activeElement;
+    const focusAction = active && active.dataset ? active.dataset.action : null;
+    const focusKey = active && active.dataset ? active.dataset.key : null;
+    body.replaceChildren();
+
+    if (!model) {
+      $('keys-summary').textContent = '—';
+      body.append(messageRow(
+        ui.error ? '无法连接 daemon。' : '正在连接 daemon…',
+        ui.error ? '确认后台 daemon 正在运行，然后重试。' : ''
+      ));
       return;
     }
 
+    let keys = model.keys.slice();
+    if (ui.filter !== 'all') keys = keys.filter((key) => visualState(key) === ui.filter);
+    if (ui.query) {
+      const query = ui.query.toLowerCase();
+      keys = keys.filter((key) => matches(key, query));
+    }
+    keys.sort(comparator(ui.sort));
+    $('keys-summary').textContent =
+      '显示 ' + nf0.format(keys.length) + ' 个，共 ' + nf0.format(model.keys.length) + ' 个';
+
+    if (!keys.length) {
+      body.append(messageRow(
+        model.keys.length ? '没有符合当前筛选的 key。' : '还没有 key。',
+        model.keys.length ? '换个筛选条件或清空搜索。' : '把 DeepSeek key 写入 keys.txt 后重启 daemon。'
+      ));
+      return;
+    }
+
+    const maxByCurrency = maxBalances(model.keys);
     for (const key of keys) {
-      const tr = document.createElement("tr");
+      body.append(buildRow(key, maxByCurrency));
+      if (ui.expanded.has(key.id)) body.append(buildDetail(key));
+    }
 
-      const tdState = document.createElement("td");
-      const badge = document.createElement("span");
-      badge.className = "badge " + (key.state || "probing");
-      badge.textContent = stateLabels[key.state] || key.state || "unknown";
-      tdState.appendChild(badge);
-      tr.appendChild(tdState);
-
-      const tdLabel = cell(key.label || "—");
-      tdLabel.title = key.id || "";
-      tr.appendChild(tdLabel);
-
-      const tdMask = cell(key.mask || "—", "key-mask");
-      tr.appendChild(tdMask);
-
-      const tdBalance = cell(formatBalance(key), "balance" + (key.balance_known && Number(key.balance) <= 0 ? " zero" : ""));
-      tr.appendChild(tdBalance);
-
-      tr.appendChild(cell(key.in_flight ?? 0, "num"));
-      tr.appendChild(cell(ago(key.last_checked), "small"));
-
-      const tdNext = cell(ago(key.next_check), "small");
-      if (!isZeroTime(key.cooldown_until) && new Date(key.cooldown_until) > new Date()) {
-        const span = document.createElement("span");
-        span.className = "cooldown";
-        span.textContent = "冷却至 " + formatDate(key.cooldown_until);
-        tdNext.appendChild(span);
-      }
-      tr.appendChild(tdNext);
-
-      const stats = key.stats || {};
-      tr.appendChild(cell((stats.successes ?? 0) + " / " + (stats.attempts ?? 0), "num"));
-
-      const tdErr = cell(key.last_error || "", "err");
-      tdErr.title = key.last_error || "";
-      tr.appendChild(tdErr);
-
-      const tdAction = document.createElement("td");
-      if (key.state === "invalid") {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "ghost";
-        btn.textContent = "恢复";
-        btn.addEventListener("click", () => restoreKey(key));
-        tdAction.appendChild(btn);
-      }
-      tr.appendChild(tdAction);
-
-      tbody.appendChild(tr);
+    if (focusAction && focusKey) {
+      const target = body.querySelector(
+        '[data-action="' + focusAction + '"][data-key="' + cssEscape(focusKey) + '"]'
+      );
+      if (target) target.focus({ preventScroll: true });
     }
   }
 
-  function render(data) {
-    const counts = data.counts || {};
-    setText("c-hot", counts.hot ?? 0);
-    setText("c-cold", counts.cold ?? 0);
-    setText("c-invalid", counts.invalid ?? 0);
-    setText("c-cooling", counts.cooling ?? 0);
-    setText("c-probing", counts.probing ?? 0);
-    setText("c-total", counts.total ?? 0);
-    setText("strategy", data.strategy || "—");
-    setText("listen", data.listen || "—");
+  function cssEscape(value) {
+    if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value);
+    return String(value).replace(/["\\]/g, '\\$&');
+  }
 
-    const uptime = Number(data.uptime_seconds || 0);
-    if (uptime < 60) setText("uptime", "已运行 " + uptime + " 秒");
-    else if (uptime < 3600) setText("uptime", "已运行 " + Math.round(uptime / 60) + " 分钟");
-    else setText("uptime", "已运行 " + (uptime / 3600).toFixed(1) + " 小时");
+  function toggleExpanded(id) {
+    if (ui.expanded.has(id)) ui.expanded.delete(id);
+    else ui.expanded.add(id);
+    renderRows(ui.derived);
+    const target = document.querySelector('[data-action="expand"][data-key="' + cssEscape(id) + '"]');
+    if (target) target.focus({ preventScroll: true });
+  }
 
-    const health = $("health");
-    const usable = Number(counts.hot || 0) - Number(counts.cooling || 0);
-    health.className = "pill " + (usable > 0 ? "ok" : "bad");
-    health.textContent = usable > 0 ? "运行中" : "无可用 key";
-
-    renderRows(data.keys || []);
-
+  function renderMeta(data) {
     const intervals = data.intervals || {};
-    setText("config",
-      "model " + (data.model_default || "—") +
-      " · 余额检查 " + (intervals.balance || "—") +
-      " · 冷池检查 " + (intervals.cold || "—") +
-      " · 最多尝试 " + (intervals.attempts ?? "—") + " 次");
-    setText("updated", "更新于 " + new Date().toLocaleTimeString("zh-CN", { hour12: false }));
+    const items = [
+      ['后台 daemon', data.pid ? 'pid ' + data.pid : '未上报'],
+      ['版本', data.version || '—'],
+      ['运行时长', fmtUptime(data.uptime_seconds)],
+      ['路由策略', data.strategy || '—'],
+      ['默认模型', data.model_default || '—'],
+      ['余额检查', shortDuration(intervals.balance) || '—'],
+      ['冷池检查', shortDuration(intervals.cold) || '—'],
+      ['最多尝试', intervals.attempts ? intervals.attempts + ' 次' : '—'],
+      ['日志', data.log_file || 'stderr（前台 serve）'],
+    ];
+    renderMetaItems(items);
   }
 
-  async function load() {
-    try {
-      const res = await fetch("/dashboard/data", { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      render(await res.json());
-    } catch (err) {
-      const health = $("health");
-      health.className = "pill bad";
-      health.textContent = "无法连接";
-      setText("updated", "加载失败：" + err.message);
+  function renderMetaEmpty() {
+    renderMetaItems([
+      ['后台 daemon', '—'], ['版本', '—'], ['运行时长', '—'],
+      ['路由策略', '—'], ['默认模型', '—'], ['余额检查', '—'],
+      ['冷池检查', '—'], ['最多尝试', '—'], ['日志', '—'],
+    ]);
+  }
+
+  function renderMetaItems(items) {
+    const wrap = $('meta');
+    wrap.replaceChildren();
+    for (const [label, value] of items) {
+      const item = el('div', 'meta-item');
+      item.append(el('span', 'meta-label', label), el('span', 'meta-value', value));
+      wrap.append(item);
     }
   }
 
-  async function refreshAll() {
-    if (busy) return;
-    busy = true;
-    const btn = $("refresh");
-    const old = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "检查中…";
+  function renderBanner(model) {
+    const banner = $('banner');
+    const text = $('banner-text');
+    const action = $('banner-action');
+    if (!model && !ui.error) {
+      banner.hidden = true;
+      return;
+    }
+
+    let tone = '';
+    let title = '';
+    let actionLabel = '';
+    let actionFn = null;
+
+    if (ui.error) {
+      tone = 'error';
+      title = '无法连接 daemon：' + ui.error;
+      actionLabel = '重试';
+      actionFn = () => fetchData({ force: true });
+    } else if (model.counts.total === 0) {
+      tone = 'neutral';
+      title = '还没有 key。把 DeepSeek key 写入 keys.txt 或 config.yaml，然后重启 daemon。';
+    } else if (model.counts.hot === 0) {
+      if (model.counts.cold > 0) {
+        tone = 'warn';
+        title = '没有可接流量的热 key。冷池会在充值后自动回热，也可以手动刷新余额。';
+        actionLabel = '刷新余额';
+        actionFn = () => fetchData({ probe: true, force: true });
+      } else if (model.counts.cooling > 0) {
+        tone = 'warn';
+        title = '所有热 key 都在冷却中，请求可能暂时失败。';
+        actionLabel = '刷新余额';
+        actionFn = () => fetchData({ probe: true, force: true });
+      } else if (model.counts.probing > 0) {
+        tone = 'neutral';
+        title = '正在检查 key 余额，稍等片刻。';
+      } else if (model.counts.invalid > 0) {
+        tone = 'bad';
+        title = '所有 key 都不可用。查看已移除的 key 并尝试恢复。';
+      } else {
+        tone = 'bad';
+        title = '没有可用的 key。';
+      }
+    }
+
+    if (!title) {
+      banner.hidden = true;
+      return;
+    }
+    banner.hidden = false;
+    banner.dataset.tone = tone;
+    text.textContent = title;
+    if (actionLabel) {
+      action.hidden = false;
+      action.textContent = actionLabel;
+      action.onclick = actionFn;
+    } else {
+      action.hidden = true;
+      action.onclick = null;
+    }
+  }
+
+  function renderDisconnected() {
+    $('addr').textContent = location.host;
+    const balance = $('hero-balance');
+    balance.classList.add('empty');
+    balance.textContent = '—';
+    balance.setAttribute('aria-label', '热池余额未知');
+    $('hero-secondary').textContent = '';
+    $('hero-sub').textContent = ui.error ? '无法读取 daemon 状态。' : '正在读取号池状态…';
+    setStatus(ui.error ? '连接失败' : '连接中', ui.error ? 'bad' : 'neutral');
+    $('hero-note').textContent = '';
+    $('chart-currency').textContent = '—';
+    $('chart-sub').textContent = ui.error ? '' : '正在读取余额…';
+    ui.chartSig = '';
+    const chart = $('bar-chart');
+    chart.replaceChildren(el('p', 'chart-empty', ui.error ? '无法读取余额。' : '正在读取余额…'));
+    renderVitalsEmpty();
+    updateFilters({ total: 0, hot: 0, cooling: 0, cold: 0, probing: 0, invalid: 0 });
+    renderRows(null);
+    renderMetaEmpty();
+    renderBanner(null);
+    updateUpdated();
+    updateLiveButton();
+  }
+
+  function renderAll() {
+    if (!ui.data) {
+      renderDisconnected();
+      return;
+    }
+    const model = ui.derived || derive(ui.data);
+    ui.derived = model;
+    $('addr').textContent = ui.data.listen || location.host;
+    renderHero(ui.data, model);
+    renderChart(model);
+    renderVitals(model);
+    updateFilters(model.counts);
+    renderRows(model);
+    renderMeta(ui.data);
+    renderBanner(model);
+    updateLiveButton();
+  }
+
+  function updateUpdated() {
+    const node = $('updated');
+    if (!ui.lastUpdated) {
+      node.textContent = ui.error ? '连接失败' : '正在连接…';
+      node.title = ui.error || '';
+      return;
+    }
+    const seconds = Math.max(0, Math.round((Date.now() - ui.lastUpdated) / 1000));
+    let text;
+    if (seconds < 5) text = '刚刚更新';
+    else if (seconds < 60) text = seconds + ' 秒前更新';
+    else if (seconds < 3600) text = Math.round(seconds / 60) + ' 分钟前更新';
+    else text = Math.round(seconds / 3600) + ' 小时前更新';
+    if (ui.error && ui.data) text = '更新失败，' + text;
+    if (!ui.live) text = '已暂停，' + text;
+    node.textContent = text;
+    node.title = new Date(ui.lastUpdated).toLocaleString('zh-CN', { hour12: false });
+  }
+
+  function updateCountdowns() {
+    document.querySelectorAll('.countdown[data-until]').forEach((node) => {
+      let text = until(node.dataset.until);
+      if (text === '即将') {
+        text = node.dataset.kind === 'cooldown' ? '即将结束' : '即将检查';
+      }
+      node.textContent = text;
+      const absolute = fmtAbsolute(node.dataset.until);
+      if (absolute !== '—') node.title = absolute;
+    });
+    document.querySelectorAll('.js-ago[data-time]').forEach((node) => {
+      node.textContent = ago(node.dataset.time);
+    });
+  }
+
+  function updateLiveButton() {
+    const button = $('live-btn');
+    $('live-label').textContent = ui.live ? '实时' : '已暂停';
+    button.classList.toggle('paused', !ui.live);
+    button.classList.toggle('offline', Boolean(ui.error));
+    button.setAttribute('aria-pressed', ui.live ? 'true' : 'false');
+    button.setAttribute('aria-label', ui.live ? '暂停自动刷新' : '开启自动刷新');
+  }
+
+  function setRefreshLoading(loading) {
+    const button = $('refresh-btn');
+    button.disabled = loading;
+    button.classList.toggle('spinning', loading);
+    $('refresh-label').textContent = loading ? '检查中' : '刷新余额';
+    button.setAttribute('aria-label', loading ? '正在检查余额' : '刷新余额');
+  }
+
+  async function fetchData(options) {
+    const opts = options || {};
+    const probe = Boolean(opts.probe);
+    const force = Boolean(opts.force);
+    if (ui.loading && !force) return;
+    const seq = ++ui.fetchSeq;
+    ui.loading = true;
+    if (probe) setRefreshLoading(true);
     try {
-      const res = await fetch("/dashboard/refresh", { method: "POST" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      render(await res.json());
-    } catch (err) {
-      setText("updated", "刷新失败：" + err.message);
+      const response = await fetch(probe ? '/dashboard/refresh' : '/dashboard/data', {
+        method: probe ? 'POST' : 'GET',
+        cache: 'no-store',
+        headers: probe ? { 'Content-Type': 'application/json' } : undefined,
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const data = await response.json();
+      if (!data || typeof data !== 'object') throw new Error('返回数据格式异常');
+      if (seq !== ui.fetchSeq) return;
+      ui.data = data;
+      ui.derived = derive(data);
+      ui.error = '';
+      ui.lastUpdated = Date.now();
+      renderAll();
+      updateUpdated();
+      if (probe) {
+        const checked = Number(data.probed);
+        showToast(Number.isFinite(checked) ? '余额已刷新，检查了 ' + checked + ' 个 key' : '余额已刷新');
+      }
+    } catch (error) {
+      if (seq !== ui.fetchSeq) return;
+      ui.error = error && error.message ? error.message : String(error);
+      if (!ui.data) renderDisconnected();
+      else {
+        renderBanner(ui.derived);
+        updateLiveButton();
+      }
+      updateUpdated();
+      if (probe) showToast('刷新失败：' + ui.error, true);
     } finally {
-      busy = false;
-      btn.disabled = false;
-      btn.textContent = old;
+      if (seq === ui.fetchSeq) {
+        ui.loading = false;
+        if (probe) setRefreshLoading(false);
+      }
     }
   }
 
-  async function restoreKey(key) {
-    if (!confirm("重新探测 key「" + (key.label || key.mask || key.id) + "」？\n这会清除它的自动移除标记。")) return;
+  function schedule() {
+    if (ui.timer) {
+      clearInterval(ui.timer);
+      ui.timer = null;
+    }
+    if (!ui.live) return;
+    ui.timer = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchData();
+    }, 5000);
+  }
+
+  function showToast(message, isError) {
+    const toast = $('toast');
+    toast.textContent = message;
+    toast.classList.toggle('error', Boolean(isError));
+    toast.classList.add('show');
+    if (ui.toastTimer) clearTimeout(ui.toastTimer);
+    ui.toastTimer = setTimeout(() => toast.classList.remove('show'), 3600);
+  }
+
+  async function copyText(text) {
     try {
-      const res = await fetch("/dashboard/keys/" + encodeURIComponent(key.id) + "/restore", { method: "POST" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      await load();
-    } catch (err) {
-      setText("updated", "恢复失败：" + err.message);
+      await navigator.clipboard.writeText(text);
+      showToast('已复制 Key ID');
+      return;
+    } catch (e) {}
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.append(area);
+    area.select();
+    try {
+      document.execCommand('copy');
+      showToast('已复制 Key ID');
+    } catch (e) {
+      showToast('复制失败，请手动选择', true);
+    } finally {
+      area.remove();
     }
   }
 
-  $("refresh").addEventListener("click", refreshAll);
-  setInterval(() => {
-    if (document.visibilityState === "visible") load();
-  }, 5000);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") load();
-  });
-  load();
+  async function restoreKey(key, button) {
+    if (!window.confirm('恢复 key「' + (key.label || key.mask || key.id) + '」？会清除自动移除标记并重新检查余额。')) {
+      return;
+    }
+    button.disabled = true;
+    try {
+      const response = await fetch(
+        '/dashboard/keys/' + encodeURIComponent(key.id) + '/restore',
+        { method: 'POST' }
+      );
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      showToast('已恢复，正在重新检查余额');
+      await fetchData({ force: true });
+    } catch (error) {
+      showToast('恢复失败：' + (error && error.message ? error.message : error), true);
+      button.disabled = false;
+    }
+  }
+
+  function attachTooltip(node, text) {
+    node.addEventListener('mouseenter', () => showTooltip(node, text));
+    node.addEventListener('focus', () => showTooltip(node, text));
+    node.addEventListener('mouseleave', hideTooltip);
+    node.addEventListener('blur', hideTooltip);
+  }
+
+  function showTooltip(target, text) {
+    const tip = $('tooltip');
+    tip.textContent = text;
+    tip.hidden = false;
+    tip.style.left = '0px';
+    tip.style.top = '0px';
+    const rect = target.getBoundingClientRect();
+    const pad = 10;
+    const width = tip.offsetWidth;
+    const height = tip.offsetHeight;
+    let left = Math.min(Math.max(pad, rect.left), window.innerWidth - width - pad);
+    let top = rect.bottom + 8;
+    if (top + height > window.innerHeight - pad) top = rect.top - height - 8;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+
+  function hideTooltip() {
+    $('tooltip').hidden = true;
+  }
+
+  function currentTheme() {
+    const explicit = document.documentElement.dataset.theme;
+    if (explicit === 'light' || explicit === 'dark') return explicit;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function updateThemeButton() {
+    const dark = currentTheme() === 'dark';
+    const button = $('theme-btn');
+    button.innerHTML = icon(dark ? 'sun' : 'moon');
+    button.setAttribute('aria-label', dark ? '切换到浅色主题' : '切换到深色主题');
+  }
+
+  function toggleTheme() {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    storageSet('dspool-theme', next);
+    updateThemeButton();
+  }
+
+  function toggleLive() {
+    ui.live = !ui.live;
+    storageSet('dspool-live', ui.live ? '1' : '0');
+    updateLiveButton();
+    schedule();
+    if (ui.live) fetchData({ force: true });
+  }
+
+  function init() {
+    if (!['state', 'balance-asc', 'balance-desc', 'checked', 'name'].includes(ui.sort)) {
+      ui.sort = 'state';
+    }
+    $('sort').value = ui.sort;
+    initFilters();
+    updateFilters({ total: 0, hot: 0, cooling: 0, cold: 0, probing: 0, invalid: 0 });
+    updateThemeButton();
+    updateLiveButton();
+    updateUpdated();
+    renderDisconnected();
+
+    $('live-btn').addEventListener('click', toggleLive);
+    $('theme-btn').addEventListener('click', toggleTheme);
+    $('refresh-btn').addEventListener('click', () => fetchData({ probe: true, force: true }));
+    $('search').addEventListener('input', (event) => {
+      ui.query = event.target.value.trim();
+      renderRows(ui.derived);
+    });
+    $('sort').addEventListener('change', (event) => {
+      ui.sort = event.target.value;
+      storageSet('dspool-sort', ui.sort);
+      renderRows(ui.derived);
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && ui.live) fetchData();
+    });
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (!document.documentElement.dataset.theme) updateThemeButton();
+      });
+    } catch (e) {}
+    window.addEventListener('scroll', hideTooltip, { passive: true });
+
+    schedule();
+    fetchData();
+    setInterval(() => {
+      updateUpdated();
+      updateCountdowns();
+    }, 1000);
+  }
+
+  init();
 })();
 </script>
 </body>
