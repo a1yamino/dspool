@@ -1,0 +1,8 @@
+# 每行一个 DeepSeek API key。
+# 支持 "label = key" 形式；label 只用于日志和 dashboard。
+# 空行和以 # 开头的行会被忽略。
+#
+# main = sk-REPLACE_ME
+# backup = sk-REPLACE_ME_TOO
+#
+# sk-ALSO_REPLACE_ME

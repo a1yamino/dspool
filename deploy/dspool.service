@@ -1,0 +1,23 @@
+[Unit]
+Description=dspool DeepSeek API key pool proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dspool
+Group=dspool
+WorkingDirectory=/var/lib/dspool
+ExecStart=/usr/local/bin/dspool -config /etc/dspool/config.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/dspool
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

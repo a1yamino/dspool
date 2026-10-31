@@ -1,0 +1,7 @@
+/dspool
+/data/
+/config.yaml
+/keys.txt
+*.log
+coverage.out
+.DS_Store

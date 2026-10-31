@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dspool · DeepSeek key pool</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0e14;
+    --bg-soft: #0f141d;
+    --panel: #12192400;
+    --panel-solid: #121924;
+    --border: #223048;
+    --border-soft: #1a2434;
+    --text: #e6edf7;
+    --muted: #8b9bb4;
+    --accent: #6ea8fe;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --amber: #d29922;
+    --red: #f85149;
+    --gray: #8b949e;
+    --shadow: 0 12px 30px rgba(0, 0, 0, .25);
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --bg-soft: #eef2f8;
+      --panel-solid: #ffffff;
+      --border: #d7dfeb;
+      --border-soft: #e6ecf3;
+      --text: #16202e;
+      --muted: #60708a;
+      --accent: #1f6feb;
+      --green: #1a7f37;
+      --blue: #0969da;
+      --amber: #9a6700;
+      --red: #cf222e;
+      --gray: #6e7781;
+      --shadow: 0 10px 24px rgba(20, 40, 75, .08);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(110, 168, 254, .10), transparent 60%),
+      radial-gradient(900px 400px at 110% 0%, rgba(63, 185, 80, .07), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  code, .mono { font-family: var(--mono); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 22px 48px; }
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 24px; letter-spacing: .2px; display: flex; align-items: center; gap: 10px; }
+  h1 .logo { color: var(--accent); }
+  h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .2px; }
+  .sub { margin: 6px 0 0; color: var(--muted); }
+  .muted { color: var(--muted); }
+  .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  button {
+    appearance: none; border: 1px solid var(--border); background: var(--panel-solid); color: var(--text);
+    border-radius: 8px; padding: 8px 14px; font: inherit; font-size: 13px; cursor: pointer;
+    transition: border-color .15s, transform .05s, background .15s;
+  }
+  button:hover { border-color: var(--accent); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .55; cursor: wait; }
+  button.ghost { background: transparent; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px; padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 500; border: 1px solid var(--border); color: var(--muted); background: var(--bg-soft);
+  }
+  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gray); }
+  .pill.ok { color: var(--green); border-color: rgba(63, 185, 80, .35); }
+  .pill.ok::before { background: var(--green); box-shadow: 0 0 10px rgba(63, 185, 80, .7); }
+  .pill.bad { color: var(--red); border-color: rgba(248, 81, 73, .35); }
+  .pill.bad::before { background: var(--red); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(138px, 1fr)); gap: 12px; margin: 24px 0 18px; }
+  .card {
+    background: var(--panel-solid); border: 1px solid var(--border-soft); border-radius: 12px;
+    padding: 14px 16px; box-shadow: var(--shadow);
+  }
+  .card .k { color: var(--muted); font-size: 12px; }
+  .card strong { display: block; font-size: 26px; line-height: 1.2; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+  .card .hint { color: var(--muted); font-size: 11px; }
+  .card.hot strong { color: var(--green); }
+  .card.cold strong { color: var(--blue); }
+  .card.invalid strong { color: var(--red); }
+  .card.cooling strong { color: var(--amber); }
+  .panel {
+    background: var(--panel-solid); border: 1px solid var(--border-soft); border-radius: 14px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid var(--border-soft); gap: 12px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 940px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; white-space: nowrap; }
+  th { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; background: var(--bg-soft); position: sticky; top: 0; z-index: 1; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+  td.err { max-width: 280px; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 12px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px;
+    font-size: 12px; border: 1px solid var(--border); background: var(--bg-soft);
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .badge.hot { color: var(--green); border-color: rgba(63,185,80,.3); background: rgba(63,185,80,.08); }
+  .badge.cold { color: var(--blue); border-color: rgba(88,166,255,.3); background: rgba(88,166,255,.08); }
+  .badge.invalid { color: var(--red); border-color: rgba(248,81,73,.3); background: rgba(248,81,73,.08); }
+  .badge.probing { color: var(--gray); }
+  .balance { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .balance.zero { color: var(--red); }
+  .key-mask { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .small { font-size: 12px; }
+  .cooldown { display: block; color: var(--amber); font-size: 11px; }
+  .empty { padding: 38px 18px; text-align: center; color: var(--muted); }
+  .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin-top: 18px; padding: 0 4px; }
+  a { color: var(--accent); }
+  @media (max-width: 720px) {
+    .wrap { padding: 20px 14px 36px; }
+    h1 { font-size: 21px; }
+    .card strong { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div>
+      <h1><span class="logo">◆</span> dspool <span class="pill" id="health">连接中</span></h1>
+      <p class="sub"><span id="listen">—</span> · 路由策略 <code id="strategy">—</code> · <span id="uptime">—</span></p>
+    </div>
+    <div class="actions">
+      <span class="muted small" id="updated">加载中…</span>
+      <button id="refresh" type="button">刷新余额</button>
+    </div>
+  </header>
+
+  <section class="cards" aria-label="号池概览">
+    <div class="card hot"><span class="k">热池</span><strong id="c-hot">–</strong><span class="hint">状态 hot（冷却另计）</span></div>
+    <div class="card cold"><span class="k">冷池</span><strong id="c-cold">–</strong><span class="hint">余额不足，等待充值</span></div>
+    <div class="card invalid"><span class="k">已移除</span><strong id="c-invalid">–</strong><span class="hint">401 / 吊销</span></div>
+    <div class="card cooling"><span class="k">冷却中</span><strong id="c-cooling">–</strong><span class="hint">429 / 临时错误</span></div>
+    <div class="card"><span class="k">探活中</span><strong id="c-probing">–</strong><span class="hint">等待余额检查</span></div>
+    <div class="card"><span class="k">总数</span><strong id="c-total">–</strong><span class="hint">配置内 key</span></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>上游 Keys</h2>
+      <span class="muted small" id="auto">每 5 秒自动刷新</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">状态</th>
+            <th scope="col">名称</th>
+            <th scope="col">Key</th>
+            <th scope="col">余额</th>
+            <th scope="col">并发</th>
+            <th scope="col">最近检查</th>
+            <th scope="col">下次检查</th>
+            <th scope="col">成功 / 尝试</th>
+            <th scope="col">最近错误</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="10" class="empty">加载中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>仅限本机使用 · dashboard 不包含完整 key</span>
+    <span id="config">—</span>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const stateLabels = { hot: "热池", cold: "冷池", invalid: "已移除", probing: "探活中" };
+  const $ = (id) => document.getElementById(id);
+  let busy = false;
+
+  function setText(id, value) {
+    const node = $(id);
+    if (node) node.textContent = value == null ? "—" : String(value);
+  }
+
+  function isZeroTime(value) {
+    if (!value) return true;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) || d.getUTCFullYear() <= 1;
+  }
+
+  function formatDate(value) {
+    if (isZeroTime(value)) return "—";
+    const d = new Date(value);
+    return d.toLocaleString("zh-CN", { hour12: false });
+  }
+
+  function ago(value) {
+    if (isZeroTime(value)) return "—";
+    const d = new Date(value);
+    const seconds = Math.round((Date.now() - d.getTime()) / 1000);
+    if (!Number.isFinite(seconds)) return "—";
+    if (seconds < 0) {
+      const future = Math.abs(seconds);
+      if (future < 60) return future + " 秒后";
+      if (future < 3600) return Math.round(future / 60) + " 分钟后";
+      return Math.round(future / 3600) + " 小时后";
+    }
+    if (seconds < 5) return "刚刚";
+    if (seconds < 60) return seconds + " 秒前";
+    if (seconds < 3600) return Math.round(seconds / 60) + " 分钟前";
+    return Math.round(seconds / 3600) + " 小时前";
+  }
+
+  function formatBalance(key) {
+    if (!key.balance_known) return "—";
+    const n = Number(key.balance);
+    if (!Number.isFinite(n)) return String(key.balance);
+    return n.toFixed(4) + " " + (key.currency || "");
+  }
+
+  function cell(text, className) {
+    const td = document.createElement("td");
+    if (className) td.className = className;
+    if (text != null) td.textContent = String(text);
+    return td;
+  }
+
+  function renderRows(keys) {
+    const tbody = $("rows");
+    tbody.replaceChildren();
+    if (!Array.isArray(keys) || keys.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 10;
+      td.className = "empty";
+      td.textContent = "没有配置 key";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    for (const key of keys) {
+      const tr = document.createElement("tr");
+
+      const tdState = document.createElement("td");
+      const badge = document.createElement("span");
+      badge.className = "badge " + (key.state || "probing");
+      badge.textContent = stateLabels[key.state] || key.state || "unknown";
+      tdState.appendChild(badge);
+      tr.appendChild(tdState);
+
+      const tdLabel = cell(key.label || "—");
+      tdLabel.title = key.id || "";
+      tr.appendChild(tdLabel);
+
+      const tdMask = cell(key.mask || "—", "key-mask");
+      tr.appendChild(tdMask);
+
+      const tdBalance = cell(formatBalance(key), "balance" + (key.balance_known && Number(key.balance) <= 0 ? " zero" : ""));
+      tr.appendChild(tdBalance);
+
+      tr.appendChild(cell(key.in_flight ?? 0, "num"));
+      tr.appendChild(cell(ago(key.last_checked), "small"));
+
+      const tdNext = cell(ago(key.next_check), "small");
+      if (!isZeroTime(key.cooldown_until) && new Date(key.cooldown_until) > new Date()) {
+        const span = document.createElement("span");
+        span.className = "cooldown";
+        span.textContent = "冷却至 " + formatDate(key.cooldown_until);
+        tdNext.appendChild(span);
+      }
+      tr.appendChild(tdNext);
+
+      const stats = key.stats || {};
+      tr.appendChild(cell((stats.successes ?? 0) + " / " + (stats.attempts ?? 0), "num"));
+
+      const tdErr = cell(key.last_error || "", "err");
+      tdErr.title = key.last_error || "";
+      tr.appendChild(tdErr);
+
+      const tdAction = document.createElement("td");
+      if (key.state === "invalid") {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "ghost";
+        btn.textContent = "恢复";
+        btn.addEventListener("click", () => restoreKey(key));
+        tdAction.appendChild(btn);
+      }
+      tr.appendChild(tdAction);
+
+      tbody.appendChild(tr);
+    }
+  }
+
+  function render(data) {
+    const counts = data.counts || {};
+    setText("c-hot", counts.hot ?? 0);
+    setText("c-cold", counts.cold ?? 0);
+    setText("c-invalid", counts.invalid ?? 0);
+    setText("c-cooling", counts.cooling ?? 0);
+    setText("c-probing", counts.probing ?? 0);
+    setText("c-total", counts.total ?? 0);
+    setText("strategy", data.strategy || "—");
+    setText("listen", data.listen || "—");
+
+    const uptime = Number(data.uptime_seconds || 0);
+    if (uptime < 60) setText("uptime", "已运行 " + uptime + " 秒");
+    else if (uptime < 3600) setText("uptime", "已运行 " + Math.round(uptime / 60) + " 分钟");
+    else setText("uptime", "已运行 " + (uptime / 3600).toFixed(1) + " 小时");
+
+    const health = $("health");
+    const usable = Number(counts.hot || 0) - Number(counts.cooling || 0);
+    health.className = "pill " + (usable > 0 ? "ok" : "bad");
+    health.textContent = usable > 0 ? "运行中" : "无可用 key";
+
+    renderRows(data.keys || []);
+
+    const intervals = data.intervals || {};
+    setText("config",
+      "model " + (data.model_default || "—") +
+      " · 余额检查 " + (intervals.balance || "—") +
+      " · 冷池检查 " + (intervals.cold || "—") +
+      " · 最多尝试 " + (intervals.attempts ?? "—") + " 次");
+    setText("updated", "更新于 " + new Date().toLocaleTimeString("zh-CN", { hour12: false }));
+  }
+
+  async function load() {
+    try {
+      const res = await fetch("/dashboard/data", { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      render(await res.json());
+    } catch (err) {
+      const health = $("health");
+      health.className = "pill bad";
+      health.textContent = "无法连接";
+      setText("updated", "加载失败：" + err.message);
+    }
+  }
+
+  async function refreshAll() {
+    if (busy) return;
+    busy = true;
+    const btn = $("refresh");
+    const old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "检查中…";
+    try {
+      const res = await fetch("/dashboard/refresh", { method: "POST" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      render(await res.json());
+    } catch (err) {
+      setText("updated", "刷新失败：" + err.message);
+    } finally {
+      busy = false;
+      btn.disabled = false;
+      btn.textContent = old;
+    }
+  }
+
+  async function restoreKey(key) {
+    if (!confirm("重新探测 key「" + (key.label || key.mask || key.id) + "」？\n这会清除它的自动移除标记。")) return;
+    try {
+      const res = await fetch("/dashboard/keys/" + encodeURIComponent(key.id) + "/restore", { method: "POST" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      await load();
+    } catch (err) {
+      setText("updated", "恢复失败：" + err.message);
+    }
+  }
+
+  $("refresh").addEventListener("click", refreshAll);
+  setInterval(() => {
+    if (document.visibilityState === "visible") load();
+  }, 5000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") load();
+  });
+  load();
+})();
+</script>
+</body>
+</html>
