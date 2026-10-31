@@ -4,6 +4,9 @@
 listen: 127.0.0.1:8787
 state_file: data/state.json
 log_level: info
+# 日志文件。留空时：dspool serve 输出到 stderr；dspool claude/codex/pi
+# 自动写到 <state_file 目录>/dspool-agent.log，避免污染 agent 的 TUI。
+log_file: ""
 
 # 代理客户端令牌（Claude Code / Codex / pi 用同一个即可）。
 # 留空则接受任意 token，仅适合本机。

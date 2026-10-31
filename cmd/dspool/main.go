@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -86,7 +87,13 @@ func main() {
 		cfg.LogLevel = *logLevelFlag
 	}
 
-	logger := newLogger(cfg.LogLevel)
+	logPath := resolveLogPath(cfg, command)
+	logger, closeLog, logErr := newLogger(cfg.LogLevel, logPath)
+	if logErr != nil {
+		fmt.Fprintf(os.Stderr, "dspool: cannot open log file %s: %v; logging to stderr\n", logPath, logErr)
+		logger, closeLog, _ = newLogger(cfg.LogLevel, "")
+	}
+	defer closeLog()
 	slog.SetDefault(logger)
 	if usedFallbackConfig {
 		logger.Info("using fallback config file", "path", effectiveConfigPath)
@@ -98,10 +105,12 @@ func main() {
 	if command == "serve" {
 		if len(passthrough) > 0 {
 			logger.Error("serve does not take positional arguments", "args", passthrough)
+			fmt.Fprintln(os.Stderr, "dspool: serve does not take positional arguments")
 			os.Exit(2)
 		}
 		if err := runServe(cfg, logger, effectiveConfigPath, explicitConfig || usedFallbackConfig); err != nil {
 			logger.Error("proxy stopped with an error", "error", err)
+			fmt.Fprintln(os.Stderr, "dspool:", err)
 			os.Exit(1)
 		}
 		return
@@ -110,6 +119,7 @@ func main() {
 	code, err := runAgent(cfg, logger, command, passthrough, *noEmbed)
 	if err != nil {
 		logger.Error("could not start agent", "agent", command, "error", err)
+		fmt.Fprintln(os.Stderr, "dspool:", err)
 		os.Exit(1)
 	}
 	if code != 0 {
@@ -168,7 +178,20 @@ Flags:
 `, version)
 }
 
-func newLogger(level string) *slog.Logger {
+// resolveLogPath decides where dspool's own logs go. Agent shortcuts default to
+// a file so the agent's TUI is not polluted; serve keeps logging to stderr
+// unless log_file is configured explicitly.
+func resolveLogPath(cfg *config.Config, command string) string {
+	if cfg.LogFile != "" {
+		return cfg.LogFile
+	}
+	if command == "serve" {
+		return ""
+	}
+	return filepath.Join(filepath.Dir(cfg.StateFile), "dspool-agent.log")
+}
+
+func newLogger(level, path string) (*slog.Logger, func(), error) {
 	var lvl slog.Level
 	switch strings.ToLower(strings.TrimSpace(level)) {
 	case "debug":
@@ -180,5 +203,19 @@ func newLogger(level string) *slog.Logger {
 	default:
 		lvl = slog.LevelInfo
 	}
-	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: lvl}))
+
+	writer := io.Writer(os.Stderr)
+	closeFn := func() {}
+	if path != "" {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return nil, nil, err
+		}
+		file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
+		if err != nil {
+			return nil, nil, err
+		}
+		writer = file
+		closeFn = func() { _ = file.Close() }
+	}
+	return slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: lvl})), closeFn, nil
 }

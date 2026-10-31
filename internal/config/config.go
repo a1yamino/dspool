@@ -132,6 +132,7 @@ type Config struct {
 	Listen       string   `yaml:"listen"`
 	StateFile    string   `yaml:"state_file"`
 	LogLevel     string   `yaml:"log_level"`
+	LogFile      string   `yaml:"log_file"`
 	ClientKeys   []string `yaml:"client_keys"`
 	AdminToken   string   `yaml:"admin_token"`
 	MaxBodyBytes int64    `yaml:"max_body_bytes"`
@@ -230,6 +231,9 @@ func Load(configPath string, explicit bool) (*Config, []string, error) {
 		cfg.StateFile = "data/state.json"
 	}
 	cfg.StateFile = resolvePath(cfg.BaseDir, cfg.StateFile)
+	if cfg.LogFile != "" {
+		cfg.LogFile = resolvePath(cfg.BaseDir, cfg.LogFile)
+	}
 
 	if err := validate(&cfg); err != nil {
 		return nil, nil, err
@@ -255,6 +259,9 @@ func applyEnv(cfg *Config) {
 	}
 	if v := os.Getenv("DSPOOL_LOG_LEVEL"); v != "" {
 		cfg.LogLevel = v
+	}
+	if v := os.Getenv("DSPOOL_LOG_FILE"); v != "" {
+		cfg.LogFile = v
 	}
 	if v := os.Getenv("DSPOOL_ADMIN_TOKEN"); v != "" {
 		cfg.AdminToken = v

@@ -170,6 +170,7 @@ dspool pi -p "hello"
 - 客户端 token 使用 `client_keys` 第一项；没配置时用 `dspool-local`（代理此时接受任意 token）。
 - 如果机器设置了 `HTTP_PROXY`/`HTTPS_PROXY`，快捷命令会给 agent 追加本地 `NO_PROXY=127.0.0.1,localhost`，避免本地请求被送到前向代理；Codex 还会开启按目标解析系统代理。
 - 内嵌代理只在这个 agent 进程存活期间运行。要常驻、给多个客户端共享，先 `dspool serve`，然后在各终端用 `dspool -no-embed claude` / `dspool -no-embed codex` / `dspool -no-embed pi`。如果直接用快捷命令同时开多个 agent，第一个退出时会关闭它启动的内嵌代理。
+- 快捷命令默认把 dspool 自己的日志写到 `<state_file 所在目录>/dspool-agent.log`（默认 `data/dspool-agent.log`），不会混进 Claude Code / Codex / pi 的终端界面。可以用 `log_file` 或 `DSPOOL_LOG_FILE` 改路径；`dspool serve` 默认仍输出到 stderr。
 - `dspool pi` 自动维护配置要求 `models.json` 是严格 JSON；如果文件里有注释导致解析失败，它会报错而不会覆盖文件。可以手动按下面的 pi 示例添加 provider，或先去掉注释。
 
 ## 客户端接入
@@ -361,6 +362,7 @@ curl -s http://127.0.0.1:8787/healthz
 | `listen` | `127.0.0.1:8787` | HTTP 监听地址 |
 | `state_file` | `data/state.json` | tombstone 持久化文件；相对路径基于配置文件目录 |
 | `log_level` | `info` | `debug` / `info` / `warn` / `error` |
+| `log_file` | `""` | 日志文件；空时 `serve` 写 stderr，agent 快捷命令写 `<state_file 目录>/dspool-agent.log` |
 | `client_keys` | `[]` | 客户端 token 列表；空 = 接受任意 token |
 | `admin_token` | `""` | `/admin/*` token；空时只允许 loopback |
 | `max_body_bytes` | `67108864` | 请求体上限（64 MiB） |
@@ -390,7 +392,7 @@ curl -s http://127.0.0.1:8787/healthz
 | `keys_file` | `""` | key 文件，每行一个；支持 `label = key` |
 | `keys` | `[]` | 内联 key 列表 |
 
-环境变量覆盖：`DSPOOL_LISTEN`、`DSPOOL_STATE_FILE`、`DSPOOL_LOG_LEVEL`、`DSPOOL_ADMIN_TOKEN`、`DSPOOL_STRATEGY`、`DSPOOL_KEYS`、`DSPOOL_KEYS_FILE`、`DSPOOL_CLIENT_KEYS`。
+环境变量覆盖：`DSPOOL_LISTEN`、`DSPOOL_STATE_FILE`、`DSPOOL_LOG_LEVEL`、`DSPOOL_LOG_FILE`、`DSPOOL_ADMIN_TOKEN`、`DSPOOL_STRATEGY`、`DSPOOL_KEYS`、`DSPOOL_KEYS_FILE`、`DSPOOL_CLIENT_KEYS`。
 
 ### key 文件格式
 

@@ -15,6 +15,7 @@ func TestLoadMergesDefaultsAndReadsKeys(t *testing.T) {
 	cfgYAML := `
 listen: 127.0.0.1:9090
 state_file: state.json
+log_file: logs/dspool.log
 keys_file: keys.txt
 pool:
   strategy: spread
@@ -46,6 +47,9 @@ keys:
 	}
 	if cfg.StateFile != filepath.Join(dir, "state.json") {
 		t.Errorf("state file = %q", cfg.StateFile)
+	}
+	if cfg.LogFile != filepath.Join(dir, "logs", "dspool.log") {
+		t.Errorf("log file = %q", cfg.LogFile)
 	}
 	if got := cfg.Pool.BalanceInterval.D(); got != 45*time.Second {
 		t.Errorf("balance interval = %v", got)
@@ -130,6 +134,7 @@ func TestLoadFromEnvironment(t *testing.T) {
 	t.Setenv("DSPOOL_KEYS", "sk-env-one,sk-env-two")
 	t.Setenv("DSPOOL_CLIENT_KEYS", "local-token")
 	t.Setenv("DSPOOL_STRATEGY", "weighted")
+	t.Setenv("DSPOOL_LOG_FILE", "logs/env.log")
 	cfg, _, err := Load("", false)
 	if err != nil {
 		t.Fatal(err)
@@ -142,6 +147,9 @@ func TestLoadFromEnvironment(t *testing.T) {
 	}
 	if cfg.Pool.Strategy != "weighted" {
 		t.Fatalf("strategy = %q", cfg.Pool.Strategy)
+	}
+	if filepath.Base(cfg.LogFile) != "env.log" {
+		t.Fatalf("log file = %q", cfg.LogFile)
 	}
 }
 
