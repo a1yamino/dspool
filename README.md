@@ -200,6 +200,7 @@ resp = client.chat.completions.create(
 <http://127.0.0.1:8787/> (also `/dashboard`) shows hot-pool balance, balance distribution, pool health, and a searchable/filterable key ledger. Expand a row for request stats, timestamps, full errors, and a copyable key ID. Invalid keys can be restored in place.
 
 - Refreshes every 5 seconds; pause with the live toggle.
+- English-first UI with an EN/中文 switch; the choice is remembered locally.
 - Manual balance refresh and light/dark theme.
 - Unauthenticated by design; it only exposes masked keys.
 

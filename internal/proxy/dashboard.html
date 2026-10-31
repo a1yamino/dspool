@@ -1,667 +1,456 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#e9eef0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d1519" media="(prefers-color-scheme: dark)">
-<title>dspool key pool</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231c5a6b'/%3E%3Cpath d='M10 21v-6M16 22V10M22 18v-3' stroke='%23f8fbfc' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#f6f8fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1117" media="(prefers-color-scheme: dark)">
+<title>dspool · DeepSeek key pool</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M10 22v-7M16 24V8M22 19v-4' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <script>
   (function () {
     try {
-      var t = localStorage.getItem('dspool-theme');
-      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      var theme = localStorage.getItem('dspool-theme');
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      if (localStorage.getItem('dspool-lang') === 'zh') document.documentElement.lang = 'zh-CN';
     } catch (e) {}
   })();
 </script>
 <style>
   :root {
     color-scheme: light;
-    --bg: #e9eef0;
-    --surface: #fbfcfc;
-    --surface-2: #f2f6f7;
-    --surface-3: #eaf0f1;
-    --ink: #152025;
-    --ink-2: #35474e;
-    --muted: #5b6e75;
-    --line: #d3dee2;
-    --line-strong: #b9c8ce;
-    --accent: #1c5a6b;
-    --accent-strong: #144855;
-    --accent-soft: #dcecef;
-    --on-accent: #f8fbfc;
-    --hot: #2b7556;
-    --hot-soft: #e1f1e8;
-    --cold: #27658f;
-    --cold-soft: #e2eef6;
-    --invalid: #a33f38;
-    --invalid-soft: #f7e5e3;
-    --cooling: #90601a;
-    --cooling-soft: #f6ecd9;
-    --probing: #586a70;
-    --probing-soft: #e9eef0;
-    --track: #e3eaec;
-    --dot-bg: #cbd6d9;
-    --hero-shadow: 0 22px 54px rgba(20, 48, 58, .075);
-    --panel-shadow: 0 10px 30px rgba(20, 48, 58, .05);
-    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --bg: #f6f8fb;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --surface-3: #f1f5f9;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --text: #0f172a;
+    --text-2: #334155;
+    --muted: #64748b;
+    --faint: #94a3b8;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --on-accent: #ffffff;
+    --success: #15803d;
+    --success-soft: #f0fdf4;
+    --warning: #b45309;
+    --warning-soft: #fffbeb;
+    --danger: #b91c1c;
+    --danger-soft: #fef2f2;
+    --neutral: #5b6a7a;
+    --neutral-soft: #f1f5f9;
+    --focus: #2563eb;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+    --shadow-md: 0 4px 16px rgba(15, 23, 42, .06);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   }
-
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #0d1519;
-      --surface: #131e23;
-      --surface-2: #17252b;
-      --surface-3: #1b2a30;
-      --ink: #e7eef0;
-      --ink-2: #c2d0d4;
-      --muted: #91a4ab;
-      --line: #26363d;
-      --line-strong: #344a52;
-      --accent: #7bc5d5;
-      --accent-strong: #a0dbe6;
-      --accent-soft: #16333a;
-      --on-accent: #082126;
-      --hot: #74d0a0;
-      --hot-soft: #143326;
-      --cold: #82bbe7;
-      --cold-soft: #142a3b;
-      --invalid: #ef948b;
-      --invalid-soft: #3a2320;
-      --cooling: #e3b466;
-      --cooling-soft: #382c19;
-      --probing: #a2b1b7;
-      --probing-soft: #233137;
-      --track: #22333a;
-      --dot-bg: #1d2c32;
-      --hero-shadow: 0 28px 70px rgba(0, 0, 0, .34);
-      --panel-shadow: 0 16px 40px rgba(0, 0, 0, .2);
+      --bg: #0b1117;
+      --surface: #111a22;
+      --surface-2: #0f1720;
+      --surface-3: #1a2531;
+      --border: #243240;
+      --border-strong: #33475a;
+      --text: #e8eef5;
+      --text-2: #c3cfdb;
+      --muted: #8fa0b2;
+      --faint: #6f8193;
+      --accent: #60a5fa;
+      --accent-hover: #93c5fd;
+      --accent-soft: #12263e;
+      --on-accent: #07121e;
+      --success: #4ade80;
+      --success-soft: #0e2a1b;
+      --warning: #fbbf24;
+      --warning-soft: #2a2110;
+      --danger: #f87171;
+      --danger-soft: #2c1717;
+      --neutral: #a0adba;
+      --neutral-soft: #1c2834;
+      --focus: #60a5fa;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, .26);
+      --shadow-md: 0 8px 28px rgba(0, 0, 0, .22);
     }
   }
-
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #0d1519;
-    --surface: #131e23;
-    --surface-2: #17252b;
-    --surface-3: #1b2a30;
-    --ink: #e7eef0;
-    --ink-2: #c2d0d4;
-    --muted: #91a4ab;
-    --line: #26363d;
-    --line-strong: #344a52;
-    --accent: #7bc5d5;
-    --accent-strong: #a0dbe6;
-    --accent-soft: #16333a;
-    --on-accent: #082126;
-    --hot: #74d0a0;
-    --hot-soft: #143326;
-    --cold: #82bbe7;
-    --cold-soft: #142a3b;
-    --invalid: #ef948b;
-    --invalid-soft: #3a2320;
-    --cooling: #e3b466;
-    --cooling-soft: #382c19;
-    --probing: #a2b1b7;
-    --probing-soft: #233137;
-    --track: #22333a;
-    --dot-bg: #1d2c32;
-    --hero-shadow: 0 28px 70px rgba(0, 0, 0, .34);
-    --panel-shadow: 0 16px 40px rgba(0, 0, 0, .2);
+    --bg: #0b1117;
+    --surface: #111a22;
+    --surface-2: #0f1720;
+    --surface-3: #1a2531;
+    --border: #243240;
+    --border-strong: #33475a;
+    --text: #e8eef5;
+    --text-2: #c3cfdb;
+    --muted: #8fa0b2;
+    --faint: #6f8193;
+    --accent: #60a5fa;
+    --accent-hover: #93c5fd;
+    --accent-soft: #12263e;
+    --on-accent: #07121e;
+    --success: #4ade80;
+    --success-soft: #0e2a1b;
+    --warning: #fbbf24;
+    --warning-soft: #2a2110;
+    --danger: #f87171;
+    --danger-soft: #2c1717;
+    --neutral: #a0adba;
+    --neutral-soft: #1c2834;
+    --focus: #60a5fa;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .26);
+    --shadow-md: 0 8px 28px rgba(0, 0, 0, .22);
   }
 
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; min-height: 100%; }
-  html { -webkit-text-size-adjust: 100%; }
   body {
-    background-color: var(--bg);
-    background-image: radial-gradient(var(--dot-bg) .7px, transparent .8px);
-    background-size: 18px 18px;
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 14px;
-    line-height: 1.5;
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.5 var(--sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  body::selection { background: var(--accent-soft); }
+  ::selection { background: var(--accent-soft); color: var(--text); }
   a { color: inherit; }
   button, input, select { font: inherit; color: inherit; }
   button { -webkit-tap-highlight-color: transparent; }
   code, .mono { font-family: var(--mono); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
   }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .icon {
-    width: 16px; height: 16px; flex: none;
+    width: 15px; height: 15px; flex: none;
     fill: none; stroke: currentColor; stroke-width: 1.8;
     stroke-linecap: round; stroke-linejoin: round;
   }
 
-  .page { width: min(1180px, 100%); margin: 0 auto; padding: 28px 24px 56px; }
-
   /* top bar */
-  .topbar {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    gap: 20px; flex-wrap: wrap; margin-bottom: 24px;
+  .topbar { position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .topbar-inner {
+    width: min(1220px, 100%); margin: 0 auto; padding: 0 28px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
   }
-  .brand {
-    display: inline-flex; align-items: center; gap: 12px;
-    text-decoration: none; min-width: 0;
-  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; text-decoration: none; }
   .brand-mark {
-    width: 42px; height: 42px; border-radius: 13px;
-    border: 1px solid var(--line-strong); background: var(--surface);
-    color: var(--accent); display: grid; place-items: center; flex: none;
+    width: 28px; height: 28px; flex: none; display: grid; place-items: center;
+    border-radius: 8px; background: var(--accent); color: var(--on-accent);
   }
-  .brand-text { display: flex; flex-direction: column; min-width: 0; }
-  .brand-text strong {
-    font-size: 23px; line-height: 1.05; font-weight: 650;
-    letter-spacing: -.045em;
+  .brand-name { font-size: 18px; font-weight: 650; letter-spacing: -.035em; }
+  .brand-sub { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .updated { margin-right: 4px; color: var(--muted); font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .lang-switch {
+    display: inline-flex; align-items: center; gap: 2px; padding: 2px;
+    border: 1px solid var(--border); border-radius: 7px; background: var(--surface-2);
   }
-  .brand-sub {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    margin-top: 4px; font-size: 12px; color: var(--muted);
+  .lang-switch button {
+    height: 24px; padding: 0 8px; border: 0; border-radius: 5px;
+    background: transparent; color: var(--muted); font-size: 11px; font-weight: 500; cursor: pointer;
   }
-  .addr {
-    font-family: var(--mono); font-size: 10.5px; color: var(--ink-2);
-    background: var(--surface-2); border: 1px solid var(--line);
-    padding: 1px 7px; border-radius: 6px; white-space: nowrap;
-  }
-  .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .updated {
-    font-size: 12px; color: var(--muted); margin-right: 2px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    height: 38px; padding: 0 14px; border-radius: 10px;
-    border: 1px solid var(--line-strong); background: var(--surface);
-    color: var(--ink); font-size: 12.5px; font-weight: 550;
-    cursor: pointer; transition: background .16s ease, border-color .16s ease, color .16s ease;
-    text-decoration: none; white-space: nowrap;
-  }
-  .btn:hover { background: var(--surface-2); border-color: var(--muted); }
-  .btn:disabled { opacity: .58; cursor: wait; }
-  .btn.primary {
-    background: var(--accent); border-color: var(--accent); color: var(--on-accent);
-  }
-  .btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
-  .btn.small { height: 30px; padding: 0 10px; border-radius: 8px; font-size: 11.5px; }
+  .lang-switch button:hover { color: var(--text); }
+  .lang-switch button.active { background: var(--accent); color: var(--on-accent); }
   .icon-btn {
-    width: 38px; height: 38px; flex: none; display: inline-grid; place-items: center;
-    border: 1px solid var(--line); background: transparent; border-radius: 10px;
-    color: var(--ink-2); cursor: pointer;
-    transition: background .16s ease, border-color .16s ease, color .16s ease;
+    width: 34px; height: 34px; flex: none; display: inline-grid; place-items: center;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    color: var(--text-2); cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
   }
-  .icon-btn:hover { background: var(--surface-2); border-color: var(--line-strong); color: var(--ink); }
-  .icon-btn.small { width: 30px; height: 30px; border-radius: 8px; color: var(--muted); }
-  .icon-btn.small:hover { color: var(--ink); }
-
+  .icon-btn:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+  .icon-btn.small { width: 28px; height: 28px; border-color: transparent; background: transparent; border-radius: 6px; color: var(--muted); }
+  .icon-btn.small:hover { background: var(--surface-3); color: var(--text); }
+  .btn {
+    height: 34px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface);
+    color: var(--text); font-size: 12px; font-weight: 550; white-space: nowrap; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn:disabled { opacity: .6; cursor: wait; }
   .live-toggle {
-    display: inline-flex; align-items: center; gap: 7px;
-    height: 38px; padding: 0 12px; border-radius: 10px;
-    border: 1px solid var(--line); background: transparent;
-    color: var(--ink-2); font-size: 12px; cursor: pointer;
-    transition: background .16s ease, border-color .16s ease, color .16s ease;
+    height: 34px; padding: 0 10px; display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    color: var(--text-2); font-size: 11.5px; cursor: pointer;
   }
-  .live-toggle:hover { background: var(--surface-2); border-color: var(--line-strong); }
-  .live-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: var(--hot);
-    box-shadow: 0 0 0 3px var(--hot-soft); flex: none;
-  }
-  .live-toggle.paused .live-dot { background: var(--muted); box-shadow: 0 0 0 3px var(--surface-3); }
-  .live-toggle.offline .live-dot { background: var(--invalid); box-shadow: 0 0 0 3px var(--invalid-soft); }
-
-  .spinning .icon { animation: spin 1s linear infinite; }
+  .live-toggle:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex: none; }
+  .live-toggle.paused .live-dot { background: var(--faint); }
+  .live-toggle.offline .live-dot { background: var(--danger); }
+  .spinning .icon { animation: spin .9s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* page */
+  .page { width: min(1220px, 100%); margin: 0 auto; padding: 28px 28px 48px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .page-head h1 { margin: 0; font-size: 24px; line-height: 1.15; font-weight: 650; letter-spacing: -.03em; }
+  .page-head p { margin: 5px 0 0; font-size: 13px; color: var(--muted); }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px;
+    border-radius: 6px; background: var(--neutral-soft); color: var(--neutral);
+    font-size: 11.5px; font-weight: 500; white-space: nowrap;
+  }
+  .status-pill i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+  .status-pill[data-tone="good"] { background: var(--success-soft); color: var(--success); }
+  .status-pill[data-tone="warn"] { background: var(--warning-soft); color: var(--warning); }
+  .status-pill[data-tone="bad"] { background: var(--danger-soft); color: var(--danger); }
 
   /* banner */
   .banner {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 18px; padding: 11px 14px;
-    border: 1px solid var(--line); border-radius: 12px;
-    background: var(--surface-2); color: var(--ink-2);
-    font-size: 12.5px; line-height: 1.45;
+    display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+    padding: 10px 12px; margin-bottom: 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-2); color: var(--text-2); font-size: 12px; line-height: 1.45;
   }
-  .banner[data-tone="warn"] { background: var(--cooling-soft); border-color: transparent; color: var(--cooling); }
-  .banner[data-tone="error"], .banner[data-tone="bad"] { background: var(--invalid-soft); border-color: transparent; color: var(--invalid); }
-  .banner[data-tone="neutral"] { background: var(--surface-2); border-color: var(--line); color: var(--ink-2); }
-  .banner-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
-  .banner-text { min-width: 0; flex: 1 1 260px; }
+  .banner[data-tone="warn"] { background: var(--warning-soft); border-color: transparent; color: var(--warning); }
+  .banner[data-tone="bad"] { background: var(--danger-soft); border-color: transparent; color: var(--danger); }
+  .banner[data-tone="neutral"] { background: var(--surface-2); border-color: var(--border); color: var(--text-2); }
+  .banner-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+  .banner-text { flex: 1 1 260px; min-width: 0; }
   .banner-action {
-    margin-left: auto; height: 30px; padding: 0 10px;
-    border-radius: 8px; border: 1px solid currentColor; background: transparent;
-    color: inherit; font-size: 11.5px; cursor: pointer;
+    height: 28px; padding: 0 9px; margin-left: auto;
+    border: 1px solid currentColor; border-radius: 6px; background: transparent;
+    color: inherit; font-size: 11px; cursor: pointer;
   }
-  .banner-action:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+  .banner-action:hover { background: var(--surface); }
 
-  /* hero */
-  .hero {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 1.08fr);
-    gap: 36px; padding: 30px 32px;
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: 26px; box-shadow: var(--hero-shadow);
+  /* KPI cards */
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .kpi {
+    min-width: 0; padding: 16px 18px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
   }
-  .hero-main { min-width: 0; }
-  .section-label {
-    margin: 0 0 12px; color: var(--muted); font-size: 12px; font-weight: 500;
+  .kpi-label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .kpi-value {
+    margin: 8px 0 3px; color: var(--text);
+    font-size: 30px; line-height: 1; font-weight: 600; letter-spacing: -.035em;
+    font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .hero-balance {
-    display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap;
-    margin: 0; min-height: 1.05em;
-    font-family: var(--serif); font-weight: 500;
-    font-size: clamp(46px, 7vw, 72px); line-height: 1;
-    letter-spacing: -.045em; font-variant-numeric: tabular-nums lining-nums;
-  }
-  .hero-balance .cur {
-    font-family: var(--sans); font-size: .34em; font-weight: 600;
-    letter-spacing: 0; color: var(--accent); align-self: flex-start; margin-top: .18em;
-  }
-  .hero-balance .int { font-variant-numeric: tabular-nums lining-nums; }
-  .hero-balance .dec {
-    font-size: .4em; color: var(--muted); letter-spacing: -.02em;
-    font-variant-numeric: tabular-nums lining-nums;
-  }
-  .hero-balance.empty {
-    font-family: var(--sans); font-size: 44px; font-weight: 400;
-    color: var(--muted); letter-spacing: 0;
-  }
-  .hero-secondary { min-height: 1.3em; margin: 10px 0 0; font-size: 12px; color: var(--muted); }
-  .hero-sub { max-width: 48ch; margin: 18px 0 0; font-size: 13px; color: var(--ink-2); }
-  .hero-status {
-    display: inline-flex; align-items: center; gap: 8px;
-    margin-top: 18px; padding: 5px 10px;
-    border: 1px solid var(--line); border-radius: 999px;
-    background: var(--surface-2); font-size: 12px; color: var(--ink-2);
-  }
-  .hero-status strong { font-weight: 600; }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
-  .hero-status[data-tone="good"] .status-dot { background: var(--hot); box-shadow: 0 0 0 3px var(--hot-soft); }
-  .hero-status[data-tone="warn"] .status-dot { background: var(--cooling); box-shadow: 0 0 0 3px var(--cooling-soft); }
-  .hero-status[data-tone="bad"] .status-dot { background: var(--invalid); box-shadow: 0 0 0 3px var(--invalid-soft); }
-  .hero-note { max-width: 50ch; margin: 18px 0 0; font-size: 12px; line-height: 1.65; color: var(--muted); }
-
-  .hero-chart {
-    min-width: 0; border-left: 1px solid var(--line);
-    padding-left: 36px; display: flex; flex-direction: column; justify-content: center;
-  }
-  .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
-  .chart-head h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
-  .chart-head p { margin: 4px 0 0; font-size: 11px; color: var(--muted); }
-  .chart-currency {
-    font-family: var(--mono); font-size: 10px; color: var(--muted);
-    border: 1px solid var(--line); border-radius: 5px; padding: 2px 6px; white-space: nowrap;
-  }
-  .bar-chart { display: flex; flex-direction: column; gap: 4px; }
-  .bar-row {
-    display: grid; grid-template-columns: minmax(60px, 104px) minmax(0, 1fr) auto;
-    align-items: center; gap: 10px;
-    padding: 5px 6px; margin: 0 -6px; border-radius: 7px;
-    cursor: default;
-  }
-  .bar-row:hover, .bar-row:focus-visible { background: var(--surface-2); }
-  .bar-label {
-    font-size: 11.5px; color: var(--ink-2);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .bar-track { height: 7px; border-radius: 4px; background: var(--track); overflow: hidden; }
-  .bar-fill {
-    display: block; height: 100%; min-width: 2px; border-radius: 4px;
-    background: var(--accent); transition: width .45s cubic-bezier(.2,.7,.3,1);
-  }
-  .bar-value {
-    font-family: var(--mono); font-size: 10.5px; color: var(--muted);
-    font-variant-numeric: tabular-nums; white-space: nowrap;
-  }
-  .chart-empty {
-    margin: 0; padding: 20px 0; border-top: 1px dashed var(--line);
-    font-size: 12px; color: var(--muted);
-  }
-
-  /* vitals */
-  .vitals {
-    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
-    margin: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    background: var(--bg);
-  }
-  .vital { padding: 15px 18px; border-left: 1px solid var(--line); min-width: 0; }
-  .vital:first-child { border-left: 0; padding-left: 0; }
-  .vital-label {
-    display: flex; align-items: center; gap: 7px;
-    font-size: 11px; color: var(--muted); white-space: nowrap;
-  }
-  .vital strong {
-    display: block; margin: 5px 0 2px;
-    font-family: var(--mono); font-size: 26px; font-weight: 500;
-    line-height: 1; letter-spacing: -.055em; font-variant-numeric: tabular-nums;
-  }
-  .vital strong.zero { color: var(--muted); font-weight: 400; }
-  .vital-sub {
-    display: block; font-size: 11px; color: var(--muted);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; display: inline-block; }
-  .dot.hot { background: var(--hot); }
-  .dot.cold { background: var(--cold); }
-  .dot.invalid { background: var(--invalid); }
-  .dot.cooling { background: var(--cooling); }
-  .dot.probing { background: var(--probing); }
+  .kpi-value.balance { display: flex; align-items: baseline; gap: 2px; }
+  .kpi-value .cur { color: var(--accent); font-size: 14px; font-weight: 600; }
+  .kpi-value .dec { color: var(--muted); font-size: 17px; font-weight: 500; }
+  .kpi-value.empty { color: var(--muted); font-size: 26px; font-weight: 400; }
+  .kpi-sub { min-height: 1.45em; color: var(--muted); font-size: 11.5px; line-height: 1.45; overflow-wrap: anywhere; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; display: inline-block; background: var(--neutral); }
+  .dot.hot { background: var(--success); }
+  .dot.cooling { background: var(--warning); }
+  .dot.cold { background: var(--accent); }
+  .dot.probing { background: var(--neutral); }
+  .dot.revoked { background: var(--danger); }
 
   /* keys panel */
-  .keys-panel {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: 20px; box-shadow: var(--panel-shadow); overflow: hidden;
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden;
   }
   .panel-head {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    gap: 16px; flex-wrap: wrap; padding: 20px 22px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; padding: 16px 18px 12px;
   }
-  .panel-head h2 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -.025em; }
-  .panel-head p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .panel-head h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.015em; }
+  .panel-head p { margin: 3px 0 0; font-size: 11.5px; color: var(--muted); }
   .panel-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .search { position: relative; display: block; }
-  .search .icon {
-    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
-    width: 15px; height: 15px; color: var(--muted); pointer-events: none;
-  }
+  .search { position: relative; }
+  .search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted); pointer-events: none; }
   .search input {
-    width: 236px; height: 38px; padding: 0 12px 0 34px;
-    border: 1px solid var(--line); border-radius: 9px;
-    background: var(--surface-2); color: var(--ink); font-size: 12.5px;
+    width: 230px; height: 34px; padding: 0 10px 0 31px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--text); font-size: 12px;
   }
   .search input::placeholder { color: var(--muted); }
   .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  .select-wrap { position: relative; display: block; }
-  .select-wrap .icon {
-    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-    width: 14px; height: 14px; color: var(--muted); pointer-events: none;
-  }
+  .select-wrap { position: relative; }
+  .select-wrap .icon { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); width: 13px; height: 13px; color: var(--muted); pointer-events: none; }
   .select-wrap select {
-    height: 38px; padding: 0 32px 0 11px; border-radius: 9px;
-    border: 1px solid var(--line); background: var(--surface-2);
-    color: var(--ink-2); font-size: 12.5px; appearance: none; cursor: pointer;
+    height: 34px; padding: 0 29px 0 10px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--surface); color: var(--text-2);
+    font-size: 12px; appearance: none; cursor: pointer;
   }
   .select-wrap select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-  .filters {
-    display: flex; align-items: center; gap: 6px;
-    padding: 0 22px 14px; overflow-x: auto; scrollbar-width: none;
-  }
+  .filters { display: flex; align-items: center; gap: 6px; padding: 0 18px 12px; overflow-x: auto; scrollbar-width: none; }
   .filters::-webkit-scrollbar { display: none; }
   .chip {
-    display: inline-flex; align-items: center; gap: 7px; flex: none;
-    height: 30px; padding: 0 10px; border-radius: 999px;
-    border: 1px solid var(--line); background: transparent;
-    color: var(--ink-2); font-size: 11.5px; cursor: pointer;
-    transition: background .16s ease, border-color .16s ease, color .16s ease;
+    display: inline-flex; align-items: center; gap: 6px; flex: none;
+    height: 28px; padding: 0 9px; border: 1px solid var(--border); border-radius: 6px;
+    background: transparent; color: var(--text-2); font-size: 11.5px; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
   }
   .chip:hover { background: var(--surface-2); }
-  .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
-  .chip .dot { width: 6px; height: 6px; }
-  .chip-count { font-family: var(--mono); font-size: 10px; opacity: .62; }
-
+  .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .chip-count { font-family: var(--mono); font-size: 10px; opacity: .65; }
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
   th {
-    padding: 9px 12px; text-align: left; white-space: nowrap;
-    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    background: var(--surface-2); color: var(--muted);
-    font-size: 11px; font-weight: 500;
+    padding: 8px 12px; text-align: left; white-space: nowrap;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 500;
   }
-  td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-  th:first-child, td:first-child { padding-left: 22px; }
-  th:last-child, td:last-child { padding-right: 22px; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: middle; }
+  th:first-child, td:first-child { padding-left: 18px; }
+  th:last-child, td:last-child { padding-right: 18px; }
   tbody tr:last-child td { border-bottom: 0; }
   .key-row { cursor: pointer; transition: background .12s ease; }
   .key-row:hover { background: var(--surface-2); }
-  .key-label {
-    max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-size: 13px; font-weight: 600; color: var(--ink);
-  }
-  .key-mask {
-    margin-top: 2px; font-family: var(--mono); font-size: 10.5px;
-    color: var(--muted); white-space: nowrap;
-  }
-  .key-row.is-invalid .key-label { color: var(--invalid); }
+  .key-label { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: 12.5px; font-weight: 600; }
+  .key-mask { margin-top: 2px; color: var(--muted); font-family: var(--mono); font-size: 10px; white-space: nowrap; }
+  .key-row.is-revoked .key-label { color: var(--danger); }
   .badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 3px 8px; border-radius: 999px; border: 1px solid transparent;
-    font-size: 11px; line-height: 1.45; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 7px; border-radius: 5px; font-size: 10.5px; font-weight: 500; white-space: nowrap;
   }
-  .badge .dot { width: 6px; height: 6px; }
-  .badge.hot { color: var(--hot); background: var(--hot-soft); }
-  .badge.cold { color: var(--cold); background: var(--cold-soft); }
-  .badge.invalid { color: var(--invalid); background: var(--invalid-soft); }
-  .badge.cooling { color: var(--cooling); background: var(--cooling-soft); }
-  .badge.probing { color: var(--probing); background: var(--probing-soft); }
-  .balance-value {
-    font-family: var(--mono); font-size: 12px; color: var(--ink-2);
-    font-variant-numeric: tabular-nums; white-space: nowrap;
-  }
-  .balance-value.muted { color: var(--muted); }
-  .balance-bar {
-    display: block; width: 74px; height: 4px; margin-top: 5px;
-    border-radius: 3px; background: var(--track); overflow: hidden;
-  }
-  .balance-fill { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
-  .balance-bar.unknown { background: var(--surface-3); }
-  .time { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; }
+  .badge .dot { width: 5px; height: 5px; }
+  .badge.hot { background: var(--success-soft); color: var(--success); }
+  .badge.cooling { background: var(--warning-soft); color: var(--warning); }
+  .badge.cold { background: var(--accent-soft); color: var(--accent); }
+  .badge.probing { background: var(--neutral-soft); color: var(--neutral); }
+  .badge.revoked { background: var(--danger-soft); color: var(--danger); }
+  .money { font-family: var(--mono); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .money.muted { color: var(--muted); }
+  .load { font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .time { font-size: 11px; color: var(--text-2); white-space: nowrap; }
   .time.muted { color: var(--muted); }
-  .stat-main {
-    font-family: var(--mono); font-size: 12px; color: var(--ink-2);
-    font-variant-numeric: tabular-nums;
-  }
-  .stat-sub {
-    margin-top: 2px; font-family: var(--mono); font-size: 10px;
-    color: var(--muted); white-space: nowrap;
-  }
-  .cell-error {
-    max-width: 230px;
-    font-size: 11.5px; color: var(--muted);
-  }
-  .error-text {
-    display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .error-mobile-label { display: none; }
+  .stat-main { font-family: var(--mono); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .stat-sub { margin-top: 1px; color: var(--muted); font-family: var(--mono); font-size: 9.5px; white-space: nowrap; }
+  .cell-error { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 11px; }
   .cell-actions { text-align: right; white-space: nowrap; }
   .row-actions { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; }
   .btn-restore {
-    height: 28px; padding: 0 8px; border-radius: 7px;
-    border: 1px solid var(--line); background: transparent;
-    color: var(--ink-2); font-size: 11px; cursor: pointer;
+    height: 26px; padding: 0 7px; border: 1px solid var(--border-strong);
+    border-radius: 6px; background: var(--surface); color: var(--text-2);
+    font-size: 10.5px; cursor: pointer;
   }
-  .btn-restore:hover { border-color: var(--invalid); color: var(--invalid); }
+  .btn-restore:hover { border-color: var(--danger); color: var(--danger); }
   .btn-restore:disabled { opacity: .55; cursor: wait; }
-  [data-action="expand"] .icon { transition: transform .16s ease; }
+  [data-action="expand"] .icon { transition: transform .15s ease; }
   [data-action="expand"][aria-expanded="true"] .icon { transform: rotate(180deg); }
-
-  .detail-row td { padding: 0; background: var(--surface-2); border-bottom: 1px solid var(--line); }
-  .detail {
-    display: grid; grid-template-columns: 1.05fr .95fr 1.25fr;
-    gap: 26px; padding: 20px 22px 22px;
-  }
-  .detail-block { min-width: 0; }
-  .detail h3 { margin: 0 0 10px; font-size: 11px; font-weight: 600; color: var(--muted); }
-  .kv { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; font-size: 12px; }
+  .detail-row td { padding: 0; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+  .detail { display: grid; grid-template-columns: 1fr .95fr 1.25fr; gap: 24px; padding: 18px 20px 20px; }
+  .detail h3 { margin: 0 0 9px; color: var(--muted); font-size: 10.5px; font-weight: 600; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 11px; }
   .kv dt { color: var(--muted); white-space: nowrap; }
   .kv dd {
-    margin: 0; font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+    margin: 0; color: var(--text-2); font-family: var(--mono); font-size: 10.5px;
     font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
   }
-  .detail-error { border-left: 1px solid var(--line); padding-left: 22px; }
-  .detail-error p {
-    margin: 0; font-size: 12px; line-height: 1.6; color: var(--ink-2);
-    overflow-wrap: anywhere; white-space: pre-wrap;
-  }
-  .detail-id {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    margin-top: 12px; color: var(--muted); font-size: 11px;
-  }
+  .detail-error { border-left: 1px solid var(--border); padding-left: 20px; }
+  .detail-error p { margin: 0; color: var(--text-2); font-size: 11.5px; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .detail-id { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; color: var(--muted); font-size: 10.5px; }
   .detail-id code {
-    padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line);
-    background: var(--surface); font-family: var(--mono); font-size: 10.5px;
-    color: var(--ink-2); overflow-wrap: anywhere;
+    padding: 2px 6px; border: 1px solid var(--border); border-radius: 5px;
+    background: var(--surface); color: var(--text-2); font-family: var(--mono); font-size: 10px;
+    overflow-wrap: anywhere;
   }
+  .message-row td { padding: 44px 18px; text-align: center; color: var(--muted); }
+  .empty-title { color: var(--text); font-size: 13.5px; font-weight: 600; }
+  .empty-sub { margin-top: 4px; font-size: 11.5px; }
 
-  .message-row td { padding: 0; border-bottom: 0; }
-  .empty-cell { padding: 46px 22px !important; text-align: center; }
-  .empty-title { font-size: 14px; font-weight: 600; color: var(--ink); }
-  .empty-sub { margin-top: 5px; font-size: 12px; color: var(--muted); }
-
-  /* footer meta */
+  /* footer */
   .meta {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
-    gap: 14px 22px; margin-top: 26px; padding-top: 18px;
-    border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px 20px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
   }
   .meta-item { min-width: 0; }
-  .meta-label { display: block; margin-bottom: 3px; font-size: 10.5px; color: var(--muted); }
-  .meta-value {
-    display: block; font-family: var(--mono); font-size: 10.5px;
-    color: var(--ink-2); overflow-wrap: anywhere; font-variant-numeric: tabular-nums;
-  }
+  .meta-label { display: block; margin-bottom: 2px; color: var(--muted); font-size: 10.5px; }
+  .meta-value { display: block; color: var(--text-2); font-family: var(--mono); font-size: 10.5px; overflow-wrap: anywhere; }
 
-  /* toast + tooltip */
+  /* toast */
   .toast {
-    position: fixed; right: 22px; bottom: 22px; z-index: 50;
-    max-width: min(380px, calc(100vw - 32px));
-    padding: 11px 14px; border-radius: 10px;
-    background: var(--ink); color: var(--bg); font-size: 12.5px; line-height: 1.45;
-    box-shadow: 0 12px 34px rgba(0, 0, 0, .24);
-    opacity: 0; transform: translateY(8px); pointer-events: none;
-    transition: opacity .18s ease, transform .18s ease;
+    position: fixed; right: 20px; bottom: 20px; z-index: 40;
+    max-width: min(380px, calc(100vw - 32px)); padding: 10px 12px;
+    border-radius: 8px; background: var(--text); color: var(--surface);
+    font-size: 12px; line-height: 1.45; box-shadow: var(--shadow-md);
+    opacity: 0; transform: translateY(6px); pointer-events: none;
+    transition: opacity .16s ease, transform .16s ease;
   }
   .toast.show { opacity: 1; transform: none; }
-  .toast.error { background: var(--invalid); color: #fff; }
-  .tooltip {
-    position: fixed; z-index: 60; max-width: 280px;
-    padding: 7px 9px; border-radius: 7px;
-    background: var(--ink); color: var(--bg);
-    font-size: 11px; line-height: 1.45;
-    box-shadow: 0 10px 26px rgba(0, 0, 0, .22); pointer-events: none;
-  }
+  .toast.error { background: var(--danger); color: #fff; }
 
-  /* entrance */
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(9px); }
-    to { opacity: 1; transform: none; }
-  }
-  .topbar, .hero, .vitals, .keys-panel, .meta {
-    animation: rise .52s cubic-bezier(.2, .7, .3, 1) both;
-  }
-  .hero { animation-delay: .04s; }
-  .vitals { animation-delay: .09s; }
-  .keys-panel { animation-delay: .14s; }
-  .meta { animation-delay: .18s; }
-
-  /* responsive */
-  @media (max-width: 980px) {
-    .hero { grid-template-columns: 1fr; gap: 26px; }
-    .hero-chart { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; padding-top: 24px; }
-    .vitals { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .vital { padding: 14px 16px; }
-    .vital:first-child { padding-left: 16px; }
-    .vital:nth-child(3n + 1) { border-left: 0; }
-    .vital:nth-child(n + 4) { border-top: 1px solid var(--line); }
+  @media (max-width: 1100px) {
+    .updated { display: none; }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 760px) {
-    .page { padding: 20px 16px 40px; }
-    .topbar { align-items: flex-start; }
-    .top-actions { width: 100%; justify-content: flex-start; }
-    .updated { flex: 0 0 auto; order: 0; margin-right: auto; }
-    .hero { padding: 24px 20px; border-radius: 20px; }
-    .panel-head { align-items: flex-start; padding: 18px 16px 14px; }
+    .topbar-inner { height: auto; padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+    .top-actions { width: 100%; justify-content: space-between; gap: 6px; }
+    .page { padding: 20px 16px 36px; }
+    .page-head { align-items: flex-start; gap: 10px; }
+    .page-head h1 { font-size: 21px; }
+    .panel-head { align-items: flex-start; padding: 14px 16px 10px; }
     .panel-tools { width: 100%; }
     .search { flex: 1 1 100%; }
     .search input { width: 100%; }
     .select-wrap { flex: 1 1 auto; }
     .select-wrap select { width: 100%; }
-    .filters { padding: 0 16px 12px; }
+    .filters { flex-wrap: wrap; overflow: visible; padding: 0 16px 10px; }
     .table-wrap { overflow: visible; }
     table, thead, tbody, tr, td { display: block; }
     thead { display: none; }
-    tbody { padding: 12px; }
+    tbody { display: block; }
     tr.key-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas:
         "state actions"
         "key key"
-        "balance balance"
-        "checked next"
-        "load stats"
+        "balance load"
+        "next next"
         "error error";
-      gap: 10px 14px;
-      margin: 0 0 10px; padding: 14px;
-      border: 1px solid var(--line); border-radius: 14px;
-      background: var(--surface);
+      gap: 9px 14px; padding: 14px 16px; border-top: 1px solid var(--border);
     }
     tr.key-row:hover { background: var(--surface); }
     tr.key-row td { padding: 0; border: 0; }
     .cell-state { grid-area: state; }
-    .cell-key { grid-area: key; padding-top: 10px !important; border-top: 1px solid var(--line) !important; }
+    .cell-key { grid-area: key; padding-top: 10px !important; border-top: 1px solid var(--border) !important; }
     .cell-balance { grid-area: balance; }
-    .cell-load { grid-area: load; }
-    .cell-checked { grid-area: checked; }
+    .cell-load { grid-area: load; text-align: right; }
+    .cell-checked, .cell-stats { display: none; }
     .cell-next { grid-area: next; }
-    .cell-stats { grid-area: stats; }
-    .cell-error { grid-area: error; max-width: none; white-space: normal; }
-    .error-mobile-label {
-      display: block; margin-bottom: 2px;
-      font-size: 10px; color: var(--muted); white-space: nowrap;
+    .cell-error {
+      grid-area: error; max-width: none; white-space: normal;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .error-text {
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden; white-space: normal;
-    }
+    .cell-error:not(.has-error) { display: none; }
     .cell-actions { grid-area: actions; }
-    .cell-checked::before, .cell-next::before, .cell-load::before, .cell-stats::before {
+    .cell-balance::before, .cell-load::before, .cell-next::before, .cell-error::before {
       content: attr(data-label); display: block; margin-bottom: 2px;
-      font-size: 10px; color: var(--muted); white-space: nowrap;
+      color: var(--muted); font-size: 9.5px; font-weight: 400; white-space: nowrap;
     }
-    .balance-bar { width: 100%; max-width: 240px; }
-    .detail-row { display: block; margin: -4px 0 10px; }
-    .detail-row td { padding: 0 0 10px; }
-    .detail {
-      grid-template-columns: 1fr; gap: 18px;
-      padding: 16px; border: 1px solid var(--line);
-      border-radius: 14px; background: var(--surface-2);
-    }
-    .detail-error {
-      grid-column: 1 / -1; border-left: 0; padding-left: 0;
-      border-top: 1px solid var(--line); padding-top: 14px;
-    }
-    .empty-cell { padding: 36px 16px !important; }
+    .cell-load::before { text-align: right; }
+    .detail-row { display: block; }
+    .detail-row td { display: block; padding: 0; }
+    .detail { grid-template-columns: 1fr; gap: 18px; padding: 16px; }
+    .detail-error { border-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 14px; }
     .message-row { display: block; }
+    .message-row td { display: block; padding: 36px 16px !important; }
     .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .toast { right: 16px; bottom: 16px; left: 16px; max-width: none; }
   }
-  @media (max-width: 620px) {
-    .vitals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .vital { padding: 14px 14px; border-top: 1px solid var(--line); }
-    .vital:nth-child(n) { border-left: 0; }
-    .vital:nth-child(even) { border-left: 1px solid var(--line); }
-    .vital:nth-child(-n + 2) { border-top: 0; }
-    .vital:first-child { padding-left: 14px; }
-    .hero-balance { font-size: clamp(42px, 13vw, 58px); }
-    .btn .btn-label { display: none; }
-    .btn.primary { width: 38px; padding: 0; }
-    .brand-text strong { font-size: 21px; }
+  @media (max-width: 520px) {
+    .brand-sub { display: none; }
+    .page-head h1 { font-size: 20px; }
+    .kpi { padding: 14px; }
+    .kpi-value { font-size: 26px; }
+    .kpi-value .cur { font-size: 12px; }
+    .kpi-value .dec { font-size: 15px; }
     .meta { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 420px) {
-    .top-actions { gap: 6px; }
-    .updated { order: 0; }
+    #refresh-btn .btn-label { display: none; }
+    #refresh-btn { width: 34px; padding: 0; }
+    .live-toggle { padding: 0 8px; }
+    .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 340px) {
     .meta { grid-template-columns: 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -680,204 +469,436 @@
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5Z"/></symbol>
-  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
-  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2-2v1"/></symbol>
 </svg>
 
-<main class="page">
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="dspool 控制台">
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="dspool">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-          <rect x="3" y="3" width="26" height="26" rx="8"/>
-          <path d="M10 21v-6M16 22V10M22 18v-3"/>
+        <svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M10 22v-7M16 24V8M22 19v-4"/>
         </svg>
       </span>
-      <span class="brand-text">
-        <strong>dspool</strong>
-        <span class="brand-sub">本地 DeepSeek 号池 <code class="addr" id="addr">—</code></span>
-      </span>
+      <span class="brand-name">dspool</span>
+      <span class="brand-sub" data-i18n="brandSub">DeepSeek key pool</span>
     </a>
     <div class="top-actions">
-      <span class="updated" id="updated">正在连接…</span>
-      <button class="live-toggle" id="live-btn" type="button" aria-pressed="true" aria-label="暂停自动刷新">
-        <span class="live-dot"></span><span id="live-label">实时</span>
+      <div class="lang-switch" role="group" aria-label="Language" data-i18n-aria="language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+      </div>
+      <span class="updated" id="updated">Connecting…</span>
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Switch theme"></button>
+      <button class="live-toggle" id="live-btn" type="button" aria-pressed="true" aria-label="Pause live updates">
+        <span class="live-dot"></span><span id="live-label">Live</span>
       </button>
-      <button class="icon-btn" id="theme-btn" type="button" aria-label="切换主题"></button>
-      <button class="btn primary" id="refresh-btn" type="button" aria-label="刷新余额">
+      <button class="btn primary" id="refresh-btn" type="button" aria-label="Refresh balances">
         <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
-        <span class="btn-label" id="refresh-label">刷新余额</span>
+        <span class="btn-label" id="refresh-label">Refresh balances</span>
       </button>
     </div>
-  </header>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <div>
+      <h1 data-i18n="pageTitle">Pool overview</h1>
+      <p data-i18n="pageSubtitle">Live health, balances, and key states.</p>
+    </div>
+    <div class="status-pill" id="status-pill" data-tone="neutral">
+      <i></i><span id="status-label">Connecting</span>
+    </div>
+  </div>
 
   <div class="banner" id="banner" role="status" hidden>
     <span class="banner-dot"></span>
     <span class="banner-text" id="banner-text"></span>
-    <button class="banner-action" id="banner-action" type="button" hidden>重试</button>
+    <button class="banner-action" id="banner-action" type="button" hidden>Retry</button>
   </div>
 
-  <section class="hero" aria-labelledby="hero-label">
-    <div class="hero-main">
-      <p class="section-label" id="hero-label">热池余额</p>
-      <p class="hero-balance" id="hero-balance">—</p>
-      <p class="hero-secondary" id="hero-secondary"></p>
-      <p class="hero-sub" id="hero-sub">正在读取号池状态…</p>
-      <div class="hero-status" id="hero-status" data-tone="neutral">
-        <span class="status-dot"></span><strong>连接中</strong>
-      </div>
-      <p class="hero-note" id="hero-note"></p>
-    </div>
-    <div class="hero-chart" aria-labelledby="chart-title">
-      <div class="chart-head">
-        <div>
-          <h2 id="chart-title">余额分布</h2>
-          <p id="chart-sub">按热 key 余额排序</p>
-        </div>
-        <span class="chart-currency" id="chart-currency">—</span>
-      </div>
-      <div class="bar-chart" id="bar-chart">
-        <p class="chart-empty">正在读取余额…</p>
-      </div>
-    </div>
+  <section class="kpis" aria-label="Pool summary" data-i18n-aria="poolSummary">
+    <article class="kpi">
+      <div class="kpi-label" data-i18n="availableBalance">Available balance</div>
+      <div class="kpi-value balance" id="balance-value">—</div>
+      <div class="kpi-sub" id="balance-sub"></div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label"><i class="dot hot"></i><span data-i18n="hotKeys">Hot keys</span></div>
+      <div class="kpi-value" id="hot-value">—</div>
+      <div class="kpi-sub" id="hot-sub"></div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label"><i class="dot cold"></i><span data-i18n="coldKeys">Cold keys</span></div>
+      <div class="kpi-value" id="cold-value">—</div>
+      <div class="kpi-sub" id="cold-sub"></div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-label" data-i18n="successRate">Success rate</div>
+      <div class="kpi-value" id="rate-value">—</div>
+      <div class="kpi-sub" id="rate-sub"></div>
+    </article>
   </section>
 
-  <section class="vitals" aria-label="号池概览">
-    <div class="vital">
-      <span class="vital-label"><i class="dot hot"></i>热池</span>
-      <strong id="v-hot">—</strong>
-      <span class="vital-sub" id="v-hot-sub">可接流量</span>
-    </div>
-    <div class="vital">
-      <span class="vital-label"><i class="dot cooling"></i>冷却中</span>
-      <strong id="v-cooling">—</strong>
-      <span class="vital-sub" id="v-cooling-sub">临时不可用</span>
-    </div>
-    <div class="vital">
-      <span class="vital-label"><i class="dot cold"></i>冷池</span>
-      <strong id="v-cold">—</strong>
-      <span class="vital-sub" id="v-cold-sub">等待充值</span>
-    </div>
-    <div class="vital">
-      <span class="vital-label"><i class="dot probing"></i>探活中</span>
-      <strong id="v-probing">—</strong>
-      <span class="vital-sub" id="v-probing-sub">余额检查中</span>
-    </div>
-    <div class="vital">
-      <span class="vital-label"><i class="dot invalid"></i>已移除</span>
-      <strong id="v-invalid">—</strong>
-      <span class="vital-sub" id="v-invalid-sub">401 / 403</span>
-    </div>
-    <div class="vital">
-      <span class="vital-label">成功率</span>
-      <strong id="v-rate">—</strong>
-      <span class="vital-sub" id="v-rate-sub">暂无请求</span>
-    </div>
-  </section>
-
-  <section class="keys-panel" aria-labelledby="keys-title">
+  <section class="panel" aria-labelledby="keys-title">
     <div class="panel-head">
       <div>
-        <h2 id="keys-title">Keys</h2>
-        <p id="keys-summary">正在读取…</p>
+        <h2 id="keys-title" data-i18n="keys">Keys</h2>
+        <p id="keys-summary">—</p>
       </div>
       <div class="panel-tools">
         <label class="search">
-          <span class="sr-only">搜索 key</span>
+          <span class="sr-only" data-i18n="searchLabel">Search keys</span>
           <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
-          <input id="search" type="search" placeholder="搜索名称、掩码、错误…" autocomplete="off" spellcheck="false">
+          <input id="search" type="search" placeholder="Search label, mask, or error…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false">
         </label>
         <label class="select-wrap">
-          <span class="sr-only">排序</span>
-          <select id="sort">
-            <option value="state">状态优先</option>
-            <option value="balance-asc">余额从低到高</option>
-            <option value="balance-desc">余额从高到低</option>
-            <option value="checked">最近检查</option>
-            <option value="name">名称</option>
+          <span class="sr-only" data-i18n="sortKeys">Sort keys</span>
+          <select id="sort" data-i18n-aria="sortKeys">
+            <option value="state" data-i18n="sortState">Status first</option>
+            <option value="balance-asc" data-i18n="sortBalanceAsc">Balance: low to high</option>
+            <option value="balance-desc" data-i18n="sortBalanceDesc">Balance: high to low</option>
+            <option value="checked" data-i18n="sortChecked">Recently checked</option>
+            <option value="name" data-i18n="sortName">Name</option>
           </select>
           <svg class="icon" aria-hidden="true"><use href="#i-chevron"></use></svg>
         </label>
       </div>
     </div>
-    <div class="filters" id="filters" role="group" aria-label="按状态筛选"></div>
+    <div class="filters" id="filters" role="group" aria-label="Filter keys by state" data-i18n-aria="filterKeys"></div>
     <div class="table-wrap">
-      <table aria-label="DeepSeek key 列表">
+      <table aria-label="DeepSeek key list" data-i18n-aria="keysTable">
         <thead>
           <tr>
-            <th scope="col">状态</th>
-            <th scope="col">Key</th>
-            <th scope="col">余额</th>
-            <th scope="col">并发</th>
-            <th scope="col">最近检查</th>
-            <th scope="col">下次检查</th>
-            <th scope="col">成功率</th>
-            <th scope="col">最近错误</th>
-            <th scope="col"><span class="sr-only">操作</span></th>
+            <th scope="col" data-i18n="colState">State</th>
+            <th scope="col" data-i18n="colKey">Key</th>
+            <th scope="col" data-i18n="colBalance">Balance</th>
+            <th scope="col" data-i18n="colLoad">Load</th>
+            <th scope="col" data-i18n="colLastCheck">Last check</th>
+            <th scope="col" data-i18n="colNextCheck">Next check</th>
+            <th scope="col" data-i18n="colSuccess">Success</th>
+            <th scope="col" data-i18n="colLastError">Last error</th>
+            <th scope="col"><span class="sr-only" data-i18n="colActions">Actions</span></th>
           </tr>
         </thead>
-        <tbody id="rows">
-          <tr class="message-row"><td class="empty-cell" colspan="9"><div class="empty-title">正在连接 daemon…</div></td></tr>
-        </tbody>
+        <tbody id="rows"></tbody>
       </table>
     </div>
   </section>
 
-  <footer class="meta" id="meta" aria-label="daemon 信息"></footer>
+  <footer class="meta" id="meta" aria-label="Daemon details" data-i18n-aria="daemonDetails"></footer>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script>
 (() => {
   'use strict';
 
   const $ = (id) => document.getElementById(id);
-  const nf2 = new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const nf0 = new Intl.NumberFormat('zh-CN');
-  const SYMBOL = { CNY: '¥', USD: '$' };
-  const ZERO_MIN = Date.UTC(2000, 0, 1);
-  const STATE_META = {
-    hot: { label: '热池' },
-    cooling: { label: '冷却中' },
-    cold: { label: '冷池' },
-    invalid: { label: '已移除' },
-    probing: { label: '探活中' },
+  const STATE_KEYS = {
+    hot: 'stateHot',
+    cooling: 'stateCooling',
+    cold: 'stateCold',
+    probing: 'stateProbing',
+    invalid: 'stateRevoked',
   };
   const FILTERS = [
-    { id: 'all', label: '全部' },
-    { id: 'hot', label: '热池', state: 'hot' },
-    { id: 'cooling', label: '冷却中', state: 'cooling' },
-    { id: 'cold', label: '冷池', state: 'cold' },
-    { id: 'probing', label: '探活中', state: 'probing' },
-    { id: 'invalid', label: '已移除', state: 'invalid' },
+    { id: 'all', key: 'filterAll' },
+    { id: 'hot', key: 'stateHot', dot: 'hot' },
+    { id: 'cooling', key: 'stateCooling', dot: 'cooling' },
+    { id: 'cold', key: 'stateCold', dot: 'cold' },
+    { id: 'probing', key: 'stateProbing', dot: 'probing' },
+    { id: 'invalid', key: 'stateRevoked', dot: 'revoked' },
   ];
-  const STATE_ORDER = { hot: 0, cooling: 1, cold: 2, probing: 3, invalid: 4 };
+  const SORTS = ['state', 'balance-asc', 'balance-desc', 'checked', 'name'];
+  const DICT = {
+    en: {
+      documentTitle: 'dspool · DeepSeek key pool',
+      brandSub: 'DeepSeek key pool',
+      pageTitle: 'Pool overview',
+      pageSubtitle: 'Live health, balances, and key states.',
+      language: 'Language',
+      poolSummary: 'Pool summary',
+      availableBalance: 'Available balance',
+      hotKeys: 'Hot keys',
+      coldKeys: 'Cold keys',
+      successRate: 'Success rate',
+      keys: 'Keys',
+      keysTable: 'DeepSeek key list',
+      searchLabel: 'Search keys',
+      searchPlaceholder: 'Search label, mask, or error…',
+      sortKeys: 'Sort keys',
+      sortState: 'Status first',
+      sortBalanceAsc: 'Balance: low to high',
+      sortBalanceDesc: 'Balance: high to low',
+      sortChecked: 'Recently checked',
+      sortName: 'Name',
+      filterKeys: 'Filter keys by state',
+      daemonDetails: 'Daemon details',
+      colState: 'State', colKey: 'Key', colBalance: 'Balance', colLoad: 'Load',
+      colLastCheck: 'Last check', colNextCheck: 'Next check', colSuccess: 'Success',
+      colLastError: 'Last error', colActions: 'Actions',
+      refreshBalances: 'Refresh balances',
+      checking: 'Checking…',
+      checkingBalances: 'Checking balances…',
+      live: 'Live',
+      paused: 'Paused',
+      pauseLive: 'Pause live updates',
+      resumeLive: 'Resume live updates',
+      themeDark: 'Switch to dark theme',
+      themeLight: 'Switch to light theme',
+      updatedConnecting: 'Connecting…',
+      updatedJustNow: 'Updated just now',
+      updatedSecondsAgo: (v) => `Updated ${v.n}s ago`,
+      updatedMinutesAgo: (v) => `Updated ${v.n}m ago`,
+      updatedHoursAgo: (v) => `Updated ${v.n}h ago`,
+      updatedFailed: 'Update failed',
+      updatedPaused: (v) => `Paused, ${v.text}`,
+      statusServing: 'Serving traffic',
+      statusNoHot: 'No usable key',
+      statusNoKeys: 'No keys',
+      statusChecking: 'Checking balances',
+      statusOffline: 'Daemon offline',
+      statusStale: 'Update failed',
+      statusAllInvalid: 'All keys revoked',
+      noBalance: 'No balance data',
+      acrossHotKeys: (v) => `Across ${v.n} hot ${v.n === 1 ? 'key' : 'keys'}`,
+      topKeyShare: (v) => `top key ${v.pct}%`,
+      otherCurrencies: (v) => `also ${v.list}`,
+      listSeparator: '; ',
+      hotSub: (v) => `${v.active} available${v.cooling ? `, ${v.cooling} cooling` : ''}`,
+      coldSub: (v) => `${v.n} waiting for a top-up`,
+      noneWaiting: 'None waiting',
+      successSub: (v) => `${v.successes} / ${v.attempts} requests`,
+      noRequests: 'No requests yet',
+      keysSummary: (v) => `Showing ${v.shown} of ${v.total}`,
+      filterAll: 'All',
+      stateHot: 'Hot', stateCooling: 'Cooling', stateCold: 'Cold',
+      stateProbing: 'Probing', stateRevoked: 'Revoked',
+      justNow: 'just now',
+      secondsAgo: (v) => `${v.n}s ago`,
+      minutesAgo: (v) => `${v.n}m ago`,
+      hoursAgo: (v) => `${v.n}h ago`,
+      daysAgo: (v) => `${v.n}d ago`,
+      inSeconds: (v) => `in ${v.n}s`,
+      inMinutes: (v) => `in ${v.n}m`,
+      inHours: (v) => `in ${v.n}h`,
+      inDays: (v) => `in ${v.n}d`,
+      soon: 'Soon',
+      cooldownUntil: (v) => `Cooling until ${v.time}`,
+      nextCheckAt: (v) => `Next check ${v.time}`,
+      requestStats: 'Request statistics',
+      timing: 'Timing',
+      lastErrorLabel: 'Last error',
+      keyIdLabel: 'Key ID',
+      copyKeyId: 'Copy key ID',
+      attempts: 'Attempts', successes: 'Successes', authErrors: '401 / 403',
+      insufficientBalance: 'Insufficient balance', rateLimited: '429',
+      serverErrors: '5xx', networkErrors: 'Network errors',
+      lastUsed: 'Last used', lastCheckedLabel: 'Last checked', nextCheckLabel: 'Next check',
+      addedAt: 'Added', coolingUntilLabel: 'Cooling until',
+      restore: 'Restore',
+      showDetails: (v) => `Show details for ${v.name}`,
+      hideDetails: (v) => `Hide details for ${v.name}`,
+      detailsFor: (v) => `Details for ${v.name}`,
+      restoreConfirm: (v) => `Restore ${v.name}? This clears its tombstone and rechecks the balance.`,
+      noErrors: 'No errors recorded.',
+      notReported: 'Not reported',
+      stderrForeground: 'stderr (foreground serve)',
+      endpoint: 'Endpoint', daemon: 'Daemon', version: 'Version', uptime: 'Uptime', strategy: 'Strategy',
+      defaultModel: 'Default model', balanceCheck: 'Balance check', coldCheck: 'Cold check',
+      maxAttempts: 'Max attempts', log: 'Log',
+      pidValue: (v) => `pid ${v.n}`,
+      durationSeconds: (v) => `${v.n}s`,
+      durationMinutes: (v) => `${v.n}m`,
+      durationHours: (v) => v.m ? `${v.h}h ${v.m}m` : `${v.h}h`,
+      durationDays: (v) => v.h ? `${v.d}d ${v.h}h` : `${v.d}d`,
+      bannerCannotConnect: (v) => `Cannot reach the daemon: ${v.error}`,
+      bannerNoKeys: 'No keys yet. Add a DeepSeek key to keys.txt or config.yaml, then restart the daemon.',
+      bannerNoHotCold: 'No hot keys. Cold keys recover after a top-up; refresh balances to check now.',
+      bannerAllCooling: 'All hot keys are cooling down. Requests may fail until a cooldown ends.',
+      bannerChecking: 'Checking key balances…',
+      bannerAllInvalid: 'All keys are revoked. Restore a key below to recheck it.',
+      bannerNoKeysAvailable: 'No keys are available.',
+      retry: 'Retry',
+      refreshBalancesAction: 'Refresh balances',
+      keyCopied: 'Key ID copied',
+      copyFailed: 'Copy failed. Select the ID manually.',
+      balancesRefreshed: 'Balances refreshed',
+      balancesRefreshedN: (v) => `Balances refreshed for ${v.n} keys`,
+      refreshFailed: (v) => `Refresh failed: ${v.error}`,
+      restored: 'Key restored. Rechecking balance.',
+      restoreFailed: (v) => `Restore failed: ${v.error}`,
+      loading: 'Loading pool data…',
+      unableLoad: 'Unable to load pool data.',
+      noMatching: 'No keys match the current filter.',
+      tryDifferent: 'Try a different filter or clear the search.',
+      noKeysYet: 'No keys yet.',
+      addKeyHint: 'Add a key to keys.txt, then restart the daemon.',
+    },
+    zh: {
+      documentTitle: 'dspool · DeepSeek 号池',
+      brandSub: 'DeepSeek 号池',
+      pageTitle: '号池概览',
+      pageSubtitle: '实时健康、余额与 key 状态。',
+      language: '语言',
+      poolSummary: '号池概览',
+      availableBalance: '可用余额',
+      hotKeys: '热 key',
+      coldKeys: '冷 key',
+      successRate: '成功率',
+      keys: 'Key 列表',
+      keysTable: 'DeepSeek key 列表',
+      searchLabel: '搜索 key',
+      searchPlaceholder: '搜索名称、掩码或错误…',
+      sortKeys: '排序',
+      sortState: '状态优先',
+      sortBalanceAsc: '余额从低到高',
+      sortBalanceDesc: '余额从高到低',
+      sortChecked: '最近检查',
+      sortName: '名称',
+      filterKeys: '按状态筛选 key',
+      daemonDetails: 'daemon 详情',
+      colState: '状态', colKey: 'Key', colBalance: '余额', colLoad: '并发',
+      colLastCheck: '最近检查', colNextCheck: '下次检查', colSuccess: '成功率',
+      colLastError: '最近错误', colActions: '操作',
+      refreshBalances: '刷新余额',
+      checking: '检查中…',
+      checkingBalances: '正在检查余额…',
+      live: '实时',
+      paused: '已暂停',
+      pauseLive: '暂停实时更新',
+      resumeLive: '恢复实时更新',
+      themeDark: '切换到深色主题',
+      themeLight: '切换到浅色主题',
+      updatedConnecting: '正在连接…',
+      updatedJustNow: '刚刚更新',
+      updatedSecondsAgo: (v) => `${v.n} 秒前更新`,
+      updatedMinutesAgo: (v) => `${v.n} 分钟前更新`,
+      updatedHoursAgo: (v) => `${v.n} 小时前更新`,
+      updatedFailed: '更新失败',
+      updatedPaused: (v) => `已暂停，${v.text}`,
+      statusServing: '运行中',
+      statusNoHot: '无可用 key',
+      statusNoKeys: '没有 key',
+      statusChecking: '正在检查',
+      statusOffline: 'daemon 离线',
+      statusStale: '更新失败',
+      statusAllInvalid: '所有 key 已移除',
+      noBalance: '暂无余额数据',
+      acrossHotKeys: (v) => `分布在 ${v.n} 个热 key`,
+      topKeyShare: (v) => `最高 key 占 ${v.pct}%`,
+      otherCurrencies: (v) => `另有 ${v.list}`,
+      listSeparator: '；',
+      hotSub: (v) => `${v.active} 个可用${v.cooling ? `，${v.cooling} 个冷却` : ''}`,
+      coldSub: (v) => `${v.n} 个等待充值`,
+      noneWaiting: '没有等待充值的 key',
+      successSub: (v) => `${v.successes} / ${v.attempts} 次请求`,
+      noRequests: '暂无请求',
+      keysSummary: (v) => `显示 ${v.shown} / ${v.total} 个`,
+      filterAll: '全部',
+      stateHot: '热池', stateCooling: '冷却中', stateCold: '冷池',
+      stateProbing: '探活中', stateRevoked: '已移除',
+      justNow: '刚刚',
+      secondsAgo: (v) => `${v.n} 秒前`,
+      minutesAgo: (v) => `${v.n} 分钟前`,
+      hoursAgo: (v) => `${v.n} 小时前`,
+      daysAgo: (v) => `${v.n} 天前`,
+      inSeconds: (v) => `${v.n} 秒后`,
+      inMinutes: (v) => `${v.n} 分钟后`,
+      inHours: (v) => `${v.n} 小时后`,
+      inDays: (v) => `${v.n} 天后`,
+      soon: '即将',
+      cooldownUntil: (v) => `冷却至 ${v.time}`,
+      nextCheckAt: (v) => `下次检查 ${v.time}`,
+      requestStats: '请求统计',
+      timing: '时间',
+      lastErrorLabel: '最近错误',
+      keyIdLabel: 'Key ID',
+      copyKeyId: '复制 Key ID',
+      attempts: '尝试', successes: '成功', authErrors: '401 / 403',
+      insufficientBalance: '余额不足', rateLimited: '429',
+      serverErrors: '5xx', networkErrors: '网络错误',
+      lastUsed: '最近使用', lastCheckedLabel: '最近检查', nextCheckLabel: '下次检查',
+      addedAt: '加入时间', coolingUntilLabel: '冷却至',
+      restore: '恢复',
+      showDetails: (v) => `查看 ${v.name} 详情`,
+      hideDetails: (v) => `收起 ${v.name} 详情`,
+      detailsFor: (v) => `${v.name} 详情`,
+      restoreConfirm: (v) => `恢复 ${v.name}？这会清除自动移除标记并重新检查余额。`,
+      noErrors: '没有记录到错误。',
+      notReported: '未上报',
+      stderrForeground: 'stderr（前台 serve）',
+      endpoint: '地址', daemon: '后台 daemon', version: '版本', uptime: '运行时长', strategy: '路由策略',
+      defaultModel: '默认模型', balanceCheck: '余额检查', coldCheck: '冷池检查',
+      maxAttempts: '最多尝试', log: '日志',
+      pidValue: (v) => `pid ${v.n}`,
+      durationSeconds: (v) => `${v.n} 秒`,
+      durationMinutes: (v) => `${v.n} 分钟`,
+      durationHours: (v) => v.m ? `${v.h} 小时 ${v.m} 分钟` : `${v.h} 小时`,
+      durationDays: (v) => v.h ? `${v.d} 天 ${v.h} 小时` : `${v.d} 天`,
+      bannerCannotConnect: (v) => `无法连接 daemon：${v.error}`,
+      bannerNoKeys: '还没有 key。把 DeepSeek key 写入 keys.txt 或 config.yaml，然后重启 daemon。',
+      bannerNoHotCold: '没有可用热 key。冷池中的 key 会在充值后恢复，也可以手动刷新余额。',
+      bannerAllCooling: '所有热 key 都在冷却中，请求可能暂时失败。',
+      bannerChecking: '正在检查 key 余额…',
+      bannerAllInvalid: '所有 key 都已移除。可在下方恢复 key 后重新检查。',
+      bannerNoKeysAvailable: '没有可用的 key。',
+      retry: '重试',
+      refreshBalancesAction: '刷新余额',
+      keyCopied: '已复制 Key ID',
+      copyFailed: '复制失败，请手动选择。',
+      balancesRefreshed: '余额已刷新',
+      balancesRefreshedN: (v) => `已刷新 ${v.n} 个 key 的余额`,
+      refreshFailed: (v) => `刷新失败：${v.error}`,
+      restored: 'Key 已恢复，正在重新检查余额。',
+      restoreFailed: (v) => `恢复失败：${v.error}`,
+      loading: '正在读取号池数据…',
+      unableLoad: '无法读取号池数据。',
+      noMatching: '没有符合当前筛选的 key。',
+      tryDifferent: '换个筛选条件或清空搜索。',
+      noKeysYet: '还没有 key。',
+      addKeyHint: '把 key 写入 keys.txt 后重启 daemon。',
+    },
+  };
 
-  const ui = {
+  const state = {
     data: null,
     derived: null,
     error: '',
     lastUpdated: 0,
     live: storageGet('dspool-live') !== '0',
+    lang: storageGet('dspool-lang') === 'zh' ? 'zh' : 'en',
     filter: 'all',
     query: '',
     sort: storageGet('dspool-sort') || 'state',
     expanded: new Set(),
     loading: false,
+    probing: false,
     fetchSeq: 0,
     filters: new Map(),
     timer: null,
     toastTimer: null,
-    chartSig: '',
   };
+  let nf0;
+  let nf2;
+  let dateFmt;
 
   function storageGet(key) {
     try { return localStorage.getItem(key); } catch (e) { return null; }
   }
   function storageSet(key, value) {
     try { localStorage.setItem(key, value); } catch (e) {}
+  }
+  function t(key, vars) {
+    const dict = DICT[state.lang] || DICT.en;
+    let value = dict[key];
+    if (value === undefined) value = DICT.en[key];
+    if (value === undefined) return key;
+    if (typeof value === 'function') return value(vars || {});
+    return String(value).replace(/\{(\w+)\}/g, (_, name) => (vars && vars[name] !== undefined ? vars[name] : '{' + name + '}'));
   }
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -888,6 +909,37 @@
   function icon(name) {
     return '<svg class="icon" aria-hidden="true"><use href="#i-' + name + '"></use></svg>';
   }
+  function locale() {
+    return state.lang === 'zh' ? 'zh-CN' : 'en-US';
+  }
+  function updateFormatters() {
+    nf0 = new Intl.NumberFormat(locale());
+    nf2 = new Intl.NumberFormat(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    dateFmt = new Intl.DateTimeFormat(locale(), {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    });
+  }
+  function formatInt(value) {
+    return nf0.format(Number(value) || 0);
+  }
+  function money(value, currency) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    const symbol = currency === 'CNY' ? '¥' : currency === 'USD' ? '$' : '';
+    const amount = nf2.format(n);
+    return symbol ? symbol + amount : (currency ? amount + ' ' + currency : amount);
+  }
+  function moneyParts(value, currency) {
+    const amount = nf2.format(Number.isFinite(Number(value)) ? Number(value) : 0);
+    const dot = amount.lastIndexOf('.');
+    return {
+      symbol: currency === 'CNY' ? '¥' : currency === 'USD' ? '$' : (currency || ''),
+      int: dot >= 0 ? amount.slice(0, dot) : amount,
+      dec: dot >= 0 ? amount.slice(dot + 1) : '00',
+    };
+  }
+  const ZERO_MIN = Date.UTC(2000, 0, 1);
   function timeMs(value) {
     if (!value) return null;
     const t = Date.parse(value);
@@ -895,77 +947,47 @@
   }
   function fmtAbsolute(value) {
     const t = timeMs(value);
-    if (t === null) return '—';
-    return new Date(t).toLocaleString('zh-CN', {
-      hour12: false, year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-    });
+    return t === null ? '—' : dateFmt.format(new Date(t));
   }
   function inWords(seconds) {
-    if (seconds < 60) return seconds + ' 秒后';
-    if (seconds < 3600) return Math.round(seconds / 60) + ' 分钟后';
-    if (seconds < 86400) return Math.round(seconds / 3600) + ' 小时后';
-    return Math.round(seconds / 86400) + ' 天后';
+    if (seconds < 60) return t('inSeconds', { n: seconds });
+    if (seconds < 3600) return t('inMinutes', { n: Math.round(seconds / 60) });
+    if (seconds < 86400) return t('inHours', { n: Math.round(seconds / 3600) });
+    return t('inDays', { n: Math.round(seconds / 86400) });
   }
   function ago(value) {
-    const t = timeMs(value);
-    if (t === null) return '—';
-    const s = Math.round((Date.now() - t) / 1000);
+    const ms = timeMs(value);
+    if (ms === null) return '—';
+    const s = Math.round((Date.now() - ms) / 1000);
     if (s < 0) return inWords(-s);
-    if (s < 5) return '刚刚';
-    if (s < 60) return s + ' 秒前';
-    if (s < 3600) return Math.round(s / 60) + ' 分钟前';
-    if (s < 86400) return Math.round(s / 3600) + ' 小时前';
-    return Math.round(s / 86400) + ' 天前';
+    if (s < 5) return t('justNow');
+    if (s < 60) return t('secondsAgo', { n: s });
+    if (s < 3600) return t('minutesAgo', { n: Math.round(s / 60) });
+    if (s < 86400) return t('hoursAgo', { n: Math.round(s / 3600) });
+    return t('daysAgo', { n: Math.round(s / 86400) });
   }
   function until(value) {
-    const t = timeMs(value);
-    if (t === null) return '—';
-    const s = Math.round((t - Date.now()) / 1000);
-    if (s <= 0) return '即将';
+    const ms = timeMs(value);
+    if (ms === null) return '—';
+    const s = Math.round((ms - Date.now()) / 1000);
+    if (s <= 0) return t('soon');
     return inWords(s);
   }
-  function fmtUptime(seconds) {
+  function formatSeconds(seconds) {
     const s = Math.max(0, Math.round(Number(seconds) || 0));
-    if (s < 60) return s + ' 秒';
-    if (s < 3600) return Math.floor(s / 60) + ' 分钟';
+    if (s < 60) return t('durationSeconds', { n: s });
+    if (s < 3600) return t('durationMinutes', { n: Math.floor(s / 60) });
     if (s < 86400) {
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      return m ? h + ' 小时 ' + m + ' 分钟' : h + ' 小时';
+      return t('durationHours', { h: Math.floor(s / 3600), m: Math.floor((s % 3600) / 60) });
     }
-    const d = Math.floor(s / 86400);
-    const h = Math.floor((s % 86400) / 3600);
-    return h ? d + ' 天 ' + h + ' 小时' : d + ' 天';
+    return t('durationDays', { d: Math.floor(s / 86400), h: Math.floor((s % 86400) / 3600) });
   }
-  function shortDuration(value) {
+  function humanDuration(value) {
     const text = String(value || '');
-    if (!text) return '';
-    return text
-      .replace(/^(\d+)h0m0s$/, '$1h')
-      .replace(/^(\d+)m0s$/, '$1m')
-      .replace(/^(\d+)h0m$/, '$1h');
-  }
-  function money(value, currency, digits) {
-    const n = Number(value);
-    if (!Number.isFinite(n)) return '—';
-    const text = new Intl.NumberFormat('zh-CN', {
-      minimumFractionDigits: digits === undefined ? 2 : digits,
-      maximumFractionDigits: digits === undefined ? 2 : digits,
-    }).format(n);
-    const symbol = SYMBOL[currency] || '';
-    if (symbol) return symbol + text;
-    return currency ? text + ' ' + currency : text;
-  }
-  function moneyParts(value, currency) {
-    const n = Number(value);
-    const text = nf2.format(Number.isFinite(n) ? n : 0);
-    const dot = text.lastIndexOf('.');
-    return {
-      symbol: SYMBOL[currency] || (currency || ''),
-      int: dot >= 0 ? text.slice(0, dot) : text,
-      dec: dot >= 0 ? text.slice(dot + 1) : '00',
-    };
+    const match = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?$/.exec(text);
+    if (!match || (!match[1] && !match[2] && !match[3])) return text || '—';
+    const seconds = (Number(match[1]) || 0) * 3600 + (Number(match[2]) || 0) * 60 + (Number(match[3]) || 0);
+    return formatSeconds(seconds);
   }
   function isCooling(key) {
     if (key.state !== 'hot') return false;
@@ -974,9 +996,15 @@
   }
   function visualState(key) {
     if (isCooling(key)) return 'cooling';
-    return STATE_META[key.state] ? key.state : 'probing';
+    return STATE_KEYS[key.state] ? key.state : 'probing';
   }
-  function getStats(key) {
+  function stateClass(value) {
+    return value === 'invalid' ? 'revoked' : value;
+  }
+  function stateLabel(value) {
+    return t(STATE_KEYS[value] || 'stateProbing');
+  }
+  function statsOf(key) {
     return key.stats && typeof key.stats === 'object' ? key.stats : {};
   }
   function derive(data) {
@@ -985,9 +1013,9 @@
     let attempts = 0;
     let successes = 0;
     for (const key of keys) {
-      const state = visualState(key);
-      if (counts[state] !== undefined) counts[state] += 1;
-      const stats = getStats(key);
+      const value = visualState(key);
+      if (counts[value] !== undefined) counts[value] += 1;
+      const stats = statsOf(key);
       attempts += Number(stats.attempts) || 0;
       successes += Number(stats.successes) || 0;
     }
@@ -1008,155 +1036,136 @@
       counts,
       attempts,
       successes,
-      rate: attempts > 0 ? successes / attempts : null,
+      rate: attempts ? successes / attempts : null,
       currencies,
       primary: currencies[0] || null,
+      hotKnown: currencies.reduce((sum, group) => sum + group.keys.length, 0),
     };
   }
 
+  function applyStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach((node) => {
+      node.textContent = t(node.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((node) => {
+      node.placeholder = t(node.dataset.i18nPlaceholder);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach((node) => {
+      node.setAttribute('aria-label', t(node.dataset.i18nAria));
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach((node) => {
+      node.title = t(node.dataset.i18nTitle);
+    });
+  }
+
+  function updateLanguageButtons() {
+    document.querySelectorAll('[data-lang]').forEach((button) => {
+      const active = button.dataset.lang === state.lang;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function setLanguage(lang) {
+    state.lang = lang === 'zh' ? 'zh' : 'en';
+    storageSet('dspool-lang', state.lang);
+    document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
+    if (state.toastTimer) {
+      clearTimeout(state.toastTimer);
+      state.toastTimer = null;
+    }
+    $('toast').classList.remove('show');
+    updateFormatters();
+    document.title = t('documentTitle');
+    applyStaticI18n();
+    updateLanguageButtons();
+    if (state.data) renderAll();
+    else renderDisconnected();
+    updateChrome();
+    updateUpdated();
+  }
+
   function setStatus(label, tone) {
-    const node = $('hero-status');
-    node.dataset.tone = tone;
-    const strong = node.querySelector('strong');
-    if (strong) strong.textContent = label;
+    $('status-label').textContent = label;
+    $('status-pill').dataset.tone = tone;
   }
 
-  function renderHero(data, model) {
-    const balance = $('hero-balance');
-    balance.replaceChildren();
-    const primary = model.primary;
-    const known = model.keys.some((key) => key.state === 'hot' && key.balance_known);
-    if (known && primary) {
-      balance.classList.remove('empty');
-      const parts = moneyParts(primary.total, primary.currency);
-      balance.append(
-        el('span', 'cur', parts.symbol),
-        el('span', 'int', parts.int),
-        el('span', 'dec', '.' + parts.dec)
-      );
-      balance.setAttribute('aria-label', '热池余额 ' + money(primary.total, primary.currency));
-    } else {
-      balance.classList.add('empty');
-      balance.textContent = '—';
-      balance.setAttribute('aria-label', '热池余额未知');
-    }
-
-    const others = model.currencies.slice(1).filter((group) => group.total > 0);
-    $('hero-secondary').textContent = others.length
-      ? '另有 ' + others.map((group) => money(group.total, group.currency)).join('，')
-      : '';
-
-    const counts = model.counts;
-    const parts = [];
-    if (counts.hotTotal) parts.push(counts.hotTotal + ' 个热 key');
-    if (counts.cooling) parts.push(counts.cooling + ' 个冷却中');
-    if (counts.cold) parts.push(counts.cold + ' 个冷 key');
-    if (counts.probing) parts.push(counts.probing + ' 个探活中');
-    if (counts.invalid) parts.push(counts.invalid + ' 个已移除');
-    if (!parts.length) parts.push('还没有 key');
-    $('hero-sub').textContent = parts.join('，');
-
-    let tone = 'neutral';
-    let label = '连接中';
-    if (counts.total === 0) {
-      label = '没有 key';
-    } else if (counts.hot > 0) {
-      tone = 'good';
-      label = '运行中';
-    } else if (counts.cold > 0) {
-      tone = 'warn';
-      label = '冷池待充值';
-    } else if (counts.probing > 0) {
-      label = '探活中';
-    } else {
-      tone = 'bad';
-      label = '没有可用 key';
-    }
-    setStatus(label, tone);
-
-    const intervals = data.intervals || {};
-    const notes = [];
-    if (intervals.balance) notes.push('每 ' + shortDuration(intervals.balance) + ' 复查余额');
-    if (intervals.cold) notes.push('冷池每 ' + shortDuration(intervals.cold) + ' 复查');
-    let note = notes.length ? notes.join('，') + '。' : '';
-    note += '余额会随外部使用变化。';
-    if (counts.invalid) note += ' 已移除的 key 可以在下方恢复。';
-    $('hero-note').textContent = note;
-  }
-
-  function renderChart(model) {
-    const chart = $('bar-chart');
-    const primary = model.primary;
-    const keys = primary
-      ? primary.keys
-          .filter((key) => Number(key.balance) > 0)
-          .sort((a, b) => Number(b.balance) - Number(a.balance))
-      : [];
-    $('chart-currency').textContent = primary ? primary.currency : '—';
-    $('chart-sub').textContent = keys.length
-      ? (keys.length > 6 ? '前 6 个热 key，按余额排序' : keys.length + ' 个热 key，按余额排序')
-      : '暂无可显示余额';
-
-    const shown = keys.slice(0, 6);
-    const signature = shown
-      .map((key) => key.id + ':' + key.balance + ':' + key.currency + ':' + (key.label || ''))
-      .join('|');
-    if (signature === ui.chartSig) return;
-    ui.chartSig = signature;
-    chart.replaceChildren();
-    if (!shown.length) {
-      chart.append(el('p', 'chart-empty', '没有可显示的热 key 余额。'));
+  function updateStatus() {
+    if (!state.data) {
+      setStatus(state.error ? t('statusOffline') : t('statusConnecting'), state.error ? 'bad' : 'neutral');
       return;
     }
-    const max = Math.max.apply(null, shown.map((key) => Number(key.balance)).concat([1]));
-    for (const key of shown) {
-      const balance = Number(key.balance);
-      const label = key.label || key.mask || key.id;
-      const tip = label + '，' + (key.mask || '无掩码') + '，余额 ' + money(balance, key.currency);
-      const row = el('div', 'bar-row');
-      row.tabIndex = 0;
-      row.dataset.tip = tip;
-      row.setAttribute('aria-label', tip);
-      const name = el('span', 'bar-label', label);
-      name.title = label;
-      const track = el('span', 'bar-track');
-      const fill = el('span', 'bar-fill');
-      fill.style.width = Math.max(2, (balance / max) * 100) + '%';
-      track.append(fill);
-      row.append(name, track, el('span', 'bar-value', money(balance, key.currency)));
-      attachTooltip(row, tip);
-      chart.append(row);
+    if (state.error) {
+      setStatus(t('statusStale'), 'bad');
+      return;
     }
+    const counts = state.derived ? state.derived.counts : { total: 0, hot: 0, cooling: 0, cold: 0, probing: 0, invalid: 0 };
+    if (counts.total === 0) setStatus(t('statusNoKeys'), 'neutral');
+    else if (counts.hot > 0) setStatus(t('statusServing'), 'good');
+    else if (counts.hotTotal > 0) setStatus(t('statusNoHot'), 'warn');
+    else if (counts.cold > 0) setStatus(t('statusNoHot'), 'warn');
+    else if (counts.probing > 0) setStatus(t('statusChecking'), 'neutral');
+    else setStatus(t('statusAllInvalid'), 'bad');
   }
 
-  function setVital(id, value, sub) {
-    const valueNode = $('v-' + id);
-    const subNode = $('v-' + id + '-sub');
-    if (valueNode) {
-      valueNode.textContent = value;
-      valueNode.classList.toggle('zero', value === '0' || value === '—');
+  function renderBalance(model) {
+    const node = $('balance-value');
+    node.replaceChildren();
+    const primary = model.primary;
+    if (primary) {
+      node.classList.remove('empty');
+      const parts = moneyParts(primary.total, primary.currency);
+      node.append(
+        el('span', 'cur', parts.symbol),
+        el('span', 'amount', parts.int),
+        el('span', 'dec', '.' + parts.dec)
+      );
+      node.setAttribute('aria-label', t('availableBalance') + ' ' + money(primary.total, primary.currency));
+    } else {
+      node.classList.add('empty');
+      node.textContent = '—';
+      node.setAttribute('aria-label', t('noBalance'));
     }
-    if (subNode) subNode.textContent = sub;
+    const sub = [];
+    if (primary) {
+      sub.push(t('acrossHotKeys', { n: model.hotKnown }));
+      const top = primary.keys.reduce((max, key) => Math.max(max, Number(key.balance) || 0), 0);
+      if (primary.total > 0) sub.push(t('topKeyShare', { pct: Math.round((top / primary.total) * 100) }));
+      const others = model.currencies.slice(1).filter((group) => group.total > 0);
+      if (others.length) {
+        sub.push(t('otherCurrencies', { list: others.map((group) => money(group.total, group.currency)).join(', ') }));
+      }
+    } else {
+      sub.push(t('noBalance'));
+    }
+    $('balance-sub').textContent = sub.join(t('listSeparator'));
   }
 
-  function renderVitals(model) {
+  function renderKpis(model) {
+    renderBalance(model);
     const counts = model.counts;
-    setVital('hot', nf0.format(counts.hotTotal), counts.hot + ' 个可接流量');
-    setVital('cooling', nf0.format(counts.cooling), counts.cooling ? '429 或临时错误' : '暂无');
-    setVital('cold', nf0.format(counts.cold), counts.cold ? '充值后自动回热' : '暂无');
-    setVital('probing', nf0.format(counts.probing), counts.probing ? '等待余额检查' : '暂无');
-    setVital('invalid', nf0.format(counts.invalid), counts.invalid ? '可手动恢复' : '暂无');
-    setVital(
-      'rate',
-      model.rate === null ? '—' : Math.round(model.rate * 100) + '%',
-      model.attempts
-        ? nf0.format(model.successes) + ' / ' + nf0.format(model.attempts) + ' 次尝试'
-        : '暂无请求'
-    );
+    $('hot-value').textContent = formatInt(counts.hotTotal);
+    $('hot-sub').textContent = t('hotSub', { active: counts.hot, cooling: counts.cooling });
+    $('cold-value').textContent = formatInt(counts.cold);
+    $('cold-sub').textContent = counts.cold ? t('coldSub', { n: counts.cold }) : t('noneWaiting');
+    $('rate-value').textContent = model.rate === null ? '—' : Math.round(model.rate * 100) + '%';
+    $('rate-sub').textContent = model.attempts
+      ? t('successSub', { successes: formatInt(model.successes), attempts: formatInt(model.attempts) })
+      : t('noRequests');
   }
 
-  function renderVitalsEmpty() {
-    ['hot', 'cooling', 'cold', 'probing', 'invalid', 'rate'].forEach((id) => setVital(id, '—', ' '));
+  function renderKpisEmpty() {
+    $('balance-value').replaceChildren();
+    $('balance-value').classList.add('empty');
+    $('balance-value').textContent = '—';
+    $('balance-value').setAttribute('aria-label', t('noBalance'));
+    $('balance-sub').textContent = '';
+    $('hot-value').textContent = '—';
+    $('hot-sub').textContent = '';
+    $('cold-value').textContent = '—';
+    $('cold-sub').textContent = '';
+    $('rate-value').textContent = '—';
+    $('rate-sub').textContent = '';
   }
 
   function initFilters() {
@@ -1166,47 +1175,53 @@
       const button = el('button', 'chip');
       button.type = 'button';
       button.dataset.filter = filter.id;
-      if (filter.state) button.append(el('i', 'dot ' + filter.state));
-      button.append(el('span', 'chip-label', filter.label), el('span', 'chip-count', '0'));
+      if (filter.dot) button.append(el('i', 'dot ' + filter.dot));
+      button.append(el('span', 'chip-label', t(filter.key)), el('span', 'chip-count', '0'));
       button.addEventListener('click', () => setFilter(filter.id));
-      ui.filters.set(filter.id, button);
+      state.filters.set(filter.id, button);
       wrap.append(button);
     }
   }
 
   function updateFilters(counts) {
     for (const filter of FILTERS) {
-      const button = ui.filters.get(filter.id);
+      const button = state.filters.get(filter.id);
       if (!button) continue;
       const count = filter.id === 'all' ? counts.total : (counts[filter.id] || 0);
-      const countNode = button.querySelector('.chip-count');
-      if (countNode) countNode.textContent = nf0.format(count);
-      const active = ui.filter === filter.id;
+      button.querySelector('.chip-label').textContent = t(filter.key);
+      button.querySelector('.chip-count').textContent = formatInt(count);
+      const active = state.filter === filter.id;
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }
   }
 
   function setFilter(id) {
-    ui.filter = id;
-    if (ui.derived) updateFilters(ui.derived.counts);
-    renderRows(ui.derived);
+    state.filter = id;
+    updateFilters(state.derived ? state.derived.counts : { total: 0, hot: 0, cooling: 0, cold: 0, probing: 0, invalid: 0 });
+    renderRows(state.derived);
+  }
+
+  function nameOf(key) {
+    return key.label || key.mask || key.id;
   }
 
   function matches(key, query) {
-    const stats = getStats(key);
+    const stats = statsOf(key);
+    const stateValue = visualState(key);
     const parts = [
-      key.label, key.mask, key.id, key.last_error, stats.last_error,
-      STATE_META[visualState(key)] ? STATE_META[visualState(key)].label : '',
+      key.label, key.mask, key.id, key.state, key.last_error, stats.last_error,
+      stateLabel(stateValue),
     ];
     return parts.some((part) => part && String(part).toLowerCase().includes(query));
   }
 
   function comparator(kind) {
+    const order = { hot: 0, cooling: 1, cold: 2, probing: 3, invalid: 4 };
     return (a, b) => {
       if (kind === 'state') {
-        const order = (STATE_ORDER[visualState(a)] || 0) - (STATE_ORDER[visualState(b)] || 0);
-        if (order !== 0) return order;
+        const diff = (order[visualState(a)] || 0) - (order[visualState(b)] || 0);
+        if (diff) return diff;
       }
       if (kind === 'state' || kind === 'balance-asc' || kind === 'balance-desc') {
         const av = a.balance_known ? Number(a.balance) : null;
@@ -1214,7 +1229,8 @@
         if (av === null && bv !== null) return 1;
         if (av !== null && bv === null) return -1;
         if (av !== null && bv !== null && av !== bv) {
-          return kind === 'balance-desc' ? bv - av : av - bv;
+          const descending = kind === 'balance-desc' || kind === 'state';
+          return descending ? bv - av : av - bv;
         }
       }
       if (kind === 'checked') {
@@ -1222,123 +1238,98 @@
         const bt = timeMs(b.last_checked) || 0;
         if (at !== bt) return bt - at;
       }
-      const an = a.label || a.mask || a.id;
-      const bn = b.label || b.mask || b.id;
-      return String(an).localeCompare(String(bn), 'zh-CN', { numeric: true });
+      return String(nameOf(a)).localeCompare(String(nameOf(b)), locale(), { numeric: true });
     };
   }
 
-  function maxBalances(keys) {
-    const out = {};
-    for (const key of keys) {
-      if (!key.balance_known) continue;
-      const currency = key.currency || '';
-      const balance = Number(key.balance);
-      if (!Number.isFinite(balance)) continue;
-      if (!(currency in out) || balance > out[currency]) out[currency] = balance;
-    }
-    return out;
-  }
-
-  function stateBadge(state) {
-    const meta = STATE_META[state] || STATE_META.probing;
-    const badge = el('span', 'badge ' + state);
-    badge.append(el('i', 'dot ' + state), el('span', '', meta.label));
-    return badge;
+  function badge(value) {
+    const node = el('span', 'badge ' + stateClass(value));
+    node.append(el('i', 'dot ' + stateClass(value)), el('span', '', stateLabel(value)));
+    return node;
   }
 
   function detailId(id) {
     return 'detail-' + String(id).replace(/[^a-zA-Z0-9_-]/g, '_');
   }
 
-  function buildRow(key, maxByCurrency) {
-    const state = visualState(key);
-    const stats = getStats(key);
-    const expanded = ui.expanded.has(key.id);
-    const row = el('tr', 'key-row is-' + state);
+  function cssEscape(value) {
+    if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value);
+    return String(value).replace(/["\\]/g, '\\$&');
+  }
+
+  function buildRow(key) {
+    const value = visualState(key);
+    const stats = statsOf(key);
+    const expanded = state.expanded.has(key.id);
+    const row = el('tr', 'key-row is-' + stateClass(value));
     row.dataset.key = key.id;
 
     const stateCell = el('td', 'cell-state');
-    stateCell.dataset.label = '状态';
-    stateCell.append(stateBadge(state));
+    stateCell.append(badge(value));
 
     const keyCell = el('td', 'cell-key');
-    keyCell.dataset.label = 'Key';
-    const label = el('div', 'key-label', key.label || key.mask || key.id);
+    const label = el('div', 'key-label', nameOf(key));
     label.title = key.label || key.id;
     keyCell.append(label);
     if (key.mask) keyCell.append(el('div', 'key-mask', key.mask));
 
     const balanceCell = el('td', 'cell-balance');
-    balanceCell.dataset.label = '余额';
-    const balanceValue = el(
+    balanceCell.dataset.label = t('colBalance');
+    balanceCell.append(el(
       'span',
-      'balance-value' + (key.balance_known ? '' : ' muted'),
+      'money' + (key.balance_known ? '' : ' muted'),
       key.balance_known ? money(key.balance, key.currency) : '—'
-    );
-    const bar = el('span', 'balance-bar');
-    const max = maxByCurrency[key.currency || ''] || 0;
-    if (key.balance_known && max > 0) {
-      const fill = el('span', 'balance-fill');
-      fill.style.width = Math.min(100, Math.max(0, (Number(key.balance) / max) * 100)) + '%';
-      bar.append(fill);
-    } else {
-      bar.classList.add('unknown');
-    }
-    const balanceWrap = el('div', 'balance-wrap');
-    balanceWrap.append(balanceValue, bar);
-    balanceCell.append(balanceWrap);
+    ));
 
-    const loadCell = el('td', 'cell-load', String(key.in_flight || 0));
-    loadCell.dataset.label = '并发';
+    const loadCell = el('td', 'cell-load', formatInt(key.in_flight || 0));
+    loadCell.classList.add('load');
+    loadCell.dataset.label = t('colLoad');
 
     const checkedCell = el('td', 'cell-checked');
-    checkedCell.dataset.label = '最近检查';
+    checkedCell.dataset.label = t('colLastCheck');
     const checked = el('span', 'time js-ago', ago(key.last_checked));
     checked.dataset.time = key.last_checked || '';
     checked.title = fmtAbsolute(key.last_checked);
     checkedCell.append(checked);
 
     const nextCell = el('td', 'cell-next');
-    nextCell.dataset.label = '下次检查';
-    let next;
-    if (state === 'invalid') {
-      next = el('span', 'time muted', '—');
-    } else if (state === 'cooling') {
-      next = el('span', 'time countdown', until(key.cooldown_until));
+    nextCell.dataset.label = t('colNextCheck');
+    if (value === 'invalid') {
+      nextCell.append(el('span', 'time muted', '—'));
+    } else if (value === 'cooling') {
+      const next = el('span', 'time countdown', until(key.cooldown_until));
       next.dataset.until = key.cooldown_until || '';
       next.dataset.kind = 'cooldown';
-      next.title = '冷却至 ' + fmtAbsolute(key.cooldown_until);
+      next.title = t('cooldownUntil', { time: fmtAbsolute(key.cooldown_until) });
+      nextCell.append(next);
     } else {
-      next = el('span', 'time countdown', until(key.next_check));
+      const next = el('span', 'time countdown', until(key.next_check));
       next.dataset.until = key.next_check || '';
       next.dataset.kind = 'next';
-      next.title = fmtAbsolute(key.next_check);
+      next.title = t('nextCheckAt', { time: fmtAbsolute(key.next_check) });
+      nextCell.append(next);
     }
-    nextCell.append(next);
 
     const statsCell = el('td', 'cell-stats');
-    statsCell.dataset.label = '成功率';
+    statsCell.dataset.label = t('colSuccess');
     const attempts = Number(stats.attempts) || 0;
     const successes = Number(stats.successes) || 0;
     statsCell.append(
       el('div', 'stat-main', attempts ? Math.round((successes / attempts) * 100) + '%' : '—'),
-      el('div', 'stat-sub', attempts ? nf0.format(successes) + ' / ' + nf0.format(attempts) : '暂无请求')
+      el('div', 'stat-sub', attempts ? formatInt(successes) + ' / ' + formatInt(attempts) : t('noRequests'))
     );
 
     const errorText = key.last_error || stats.last_error || '';
-    const errorCell = el('td', 'cell-error');
-    errorCell.dataset.label = '最近错误';
+    const errorCell = el('td', 'cell-error', errorText || '—');
+    errorCell.dataset.label = t('colLastError');
     errorCell.title = errorText || '';
-    errorCell.append(
-      el('span', 'error-mobile-label', '最近错误'),
-      el('span', 'error-text', errorText || '—')
-    );
+    if (errorText) errorCell.classList.add('has-error');
 
     const actionsCell = el('td', 'cell-actions');
+    actionsCell.dataset.label = t('colActions');
     const actions = el('div', 'row-actions');
-    if (state === 'invalid') {
-      const restore = el('button', 'btn-restore', '恢复');
+    if (value === 'invalid') {
+      const restore = el('button', 'btn-restore', t('restore'));
       restore.type = 'button';
       restore.dataset.action = 'restore';
       restore.dataset.key = key.id;
@@ -1354,7 +1345,7 @@
     expand.dataset.key = key.id;
     expand.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     expand.setAttribute('aria-controls', detailId(key.id));
-    expand.setAttribute('aria-label', expanded ? '收起 ' + (key.label || key.id) + ' 详情' : '查看 ' + (key.label || key.id) + ' 详情');
+    expand.setAttribute('aria-label', expanded ? t('hideDetails', { name: nameOf(key) }) : t('showDetails', { name: nameOf(key) }));
     expand.innerHTML = icon('chevron');
     expand.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -1363,10 +1354,7 @@
     actions.append(expand);
     actionsCell.append(actions);
 
-    row.append(
-      stateCell, keyCell, balanceCell, loadCell, checkedCell,
-      nextCell, statsCell, errorCell, actionsCell
-    );
+    row.append(stateCell, keyCell, balanceCell, loadCell, checkedCell, nextCell, statsCell, errorCell, actionsCell);
     row.addEventListener('click', (event) => {
       if (event.target.closest('button, a, input, select, textarea')) return;
       toggleExpanded(key.id);
@@ -1375,52 +1363,52 @@
   }
 
   function buildDetail(key) {
-    const stats = getStats(key);
+    const stats = statsOf(key);
     const row = el('tr', 'detail-row');
     row.id = detailId(key.id);
     const cell = el('td');
     cell.colSpan = 9;
     const detail = el('div', 'detail');
     detail.setAttribute('role', 'region');
-    detail.setAttribute('aria-label', 'key 详情');
+    detail.setAttribute('aria-label', t('detailsFor', { name: nameOf(key) }));
 
-    const statsBlock = el('div', 'detail-block');
-    statsBlock.append(el('h3', '', '请求统计'));
+    const statsBlock = el('div');
+    statsBlock.append(el('h3', '', t('requestStats')));
     const statsList = el('dl', 'kv');
     const statsRows = [
-      ['尝试', stats.attempts], ['成功', stats.successes],
-      ['401 / 403', stats.auth_errors], ['余额不足', stats.insufficient_balance],
-      ['429', stats.rate_limited], ['5xx', stats.server_errors],
-      ['网络错误', stats.network_errors],
+      ['attempts', stats.attempts], ['successes', stats.successes],
+      ['authErrors', stats.auth_errors], ['insufficientBalance', stats.insufficient_balance],
+      ['rateLimited', stats.rate_limited], ['serverErrors', stats.server_errors],
+      ['networkErrors', stats.network_errors],
     ];
-    for (const [label, value] of statsRows) {
-      statsList.append(el('dt', '', label), el('dd', '', nf0.format(Number(value) || 0)));
+    for (const [labelKey, value] of statsRows) {
+      statsList.append(el('dt', '', t(labelKey)), el('dd', '', formatInt(Number(value) || 0)));
     }
     statsBlock.append(statsList);
 
-    const timeBlock = el('div', 'detail-block');
-    timeBlock.append(el('h3', '', '时间'));
+    const timeBlock = el('div');
+    timeBlock.append(el('h3', '', t('timing')));
     const timeList = el('dl', 'kv');
     const timeRows = [
-      ['最近使用', fmtAbsolute(stats.last_used)],
-      ['最近检查', fmtAbsolute(key.last_checked)],
-      ['下次检查', fmtAbsolute(key.next_check)],
-      ['加入时间', fmtAbsolute(key.added_at)],
-      ['冷却至', fmtAbsolute(key.cooldown_until)],
+      ['lastUsed', fmtAbsolute(stats.last_used)],
+      ['lastCheckedLabel', fmtAbsolute(key.last_checked)],
+      ['nextCheckLabel', fmtAbsolute(key.next_check)],
+      ['addedAt', fmtAbsolute(key.added_at)],
+      ['coolingUntilLabel', fmtAbsolute(key.cooldown_until)],
     ];
-    for (const [label, value] of timeRows) {
-      timeList.append(el('dt', '', label), el('dd', '', value));
+    for (const [labelKey, value] of timeRows) {
+      timeList.append(el('dt', '', t(labelKey)), el('dd', '', value));
     }
     timeBlock.append(timeList);
 
-    const errorBlock = el('div', 'detail-block detail-error');
-    errorBlock.append(el('h3', '', '最近错误'));
-    errorBlock.append(el('p', '', key.last_error || stats.last_error || '没有记录到错误。'));
+    const errorBlock = el('div', 'detail-error');
+    errorBlock.append(el('h3', '', t('lastErrorLabel')));
+    errorBlock.append(el('p', '', key.last_error || stats.last_error || t('noErrors')));
     const idRow = el('div', 'detail-id');
-    idRow.append(el('span', '', 'Key ID'), el('code', '', key.id));
+    idRow.append(el('span', '', t('keyIdLabel')), el('code', '', key.id));
     const copy = el('button', 'icon-btn small');
     copy.type = 'button';
-    copy.setAttribute('aria-label', '复制 Key ID');
+    copy.setAttribute('aria-label', t('copyKeyId'));
     copy.innerHTML = icon('copy');
     copy.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -1437,7 +1425,7 @@
 
   function messageRow(title, subtitle) {
     const row = el('tr', 'message-row');
-    const cell = el('td', 'empty-cell');
+    const cell = el('td');
     cell.colSpan = 9;
     cell.append(el('div', 'empty-title', title));
     if (subtitle) cell.append(el('div', 'empty-sub', subtitle));
@@ -1455,34 +1443,35 @@
     if (!model) {
       $('keys-summary').textContent = '—';
       body.append(messageRow(
-        ui.error ? '无法连接 daemon。' : '正在连接 daemon…',
-        ui.error ? '确认后台 daemon 正在运行，然后重试。' : ''
+        state.error ? t('unableLoad') : t('loading'),
+        state.error ? '' : ''
       ));
       return;
     }
 
     let keys = model.keys.slice();
-    if (ui.filter !== 'all') keys = keys.filter((key) => visualState(key) === ui.filter);
-    if (ui.query) {
-      const query = ui.query.toLowerCase();
+    if (state.filter !== 'all') keys = keys.filter((key) => visualState(key) === state.filter);
+    if (state.query) {
+      const query = state.query.toLowerCase();
       keys = keys.filter((key) => matches(key, query));
     }
-    keys.sort(comparator(ui.sort));
-    $('keys-summary').textContent =
-      '显示 ' + nf0.format(keys.length) + ' 个，共 ' + nf0.format(model.keys.length) + ' 个';
+    keys.sort(comparator(state.sort));
+    $('keys-summary').textContent = t('keysSummary', {
+      shown: formatInt(keys.length), total: formatInt(model.keys.length),
+    });
 
     if (!keys.length) {
+      const noKeys = model.keys.length === 0;
       body.append(messageRow(
-        model.keys.length ? '没有符合当前筛选的 key。' : '还没有 key。',
-        model.keys.length ? '换个筛选条件或清空搜索。' : '把 DeepSeek key 写入 keys.txt 后重启 daemon。'
+        noKeys ? t('noKeysYet') : t('noMatching'),
+        noKeys ? t('addKeyHint') : t('tryDifferent')
       ));
       return;
     }
 
-    const maxByCurrency = maxBalances(model.keys);
     for (const key of keys) {
-      body.append(buildRow(key, maxByCurrency));
-      if (ui.expanded.has(key.id)) body.append(buildDetail(key));
+      body.append(buildRow(key));
+      if (state.expanded.has(key.id)) body.append(buildDetail(key));
     }
 
     if (focusAction && focusKey) {
@@ -1493,15 +1482,10 @@
     }
   }
 
-  function cssEscape(value) {
-    if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value);
-    return String(value).replace(/["\\]/g, '\\$&');
-  }
-
   function toggleExpanded(id) {
-    if (ui.expanded.has(id)) ui.expanded.delete(id);
-    else ui.expanded.add(id);
-    renderRows(ui.derived);
+    if (state.expanded.has(id)) state.expanded.delete(id);
+    else state.expanded.add(id);
+    renderRows(state.derived);
     const target = document.querySelector('[data-action="expand"][data-key="' + cssEscape(id) + '"]');
     if (target) target.focus({ preventScroll: true });
   }
@@ -1509,25 +1493,23 @@
   function renderMeta(data) {
     const intervals = data.intervals || {};
     const items = [
-      ['后台 daemon', data.pid ? 'pid ' + data.pid : '未上报'],
-      ['版本', data.version || '—'],
-      ['运行时长', fmtUptime(data.uptime_seconds)],
-      ['路由策略', data.strategy || '—'],
-      ['默认模型', data.model_default || '—'],
-      ['余额检查', shortDuration(intervals.balance) || '—'],
-      ['冷池检查', shortDuration(intervals.cold) || '—'],
-      ['最多尝试', intervals.attempts ? intervals.attempts + ' 次' : '—'],
-      ['日志', data.log_file || 'stderr（前台 serve）'],
+      [t('endpoint'), data.listen || '—'],
+      [t('daemon'), data.pid ? t('pidValue', { n: data.pid }) : t('notReported')],
+      [t('version'), data.version || '—'],
+      [t('uptime'), formatSeconds(data.uptime_seconds)],
+      [t('strategy'), data.strategy || '—'],
+      [t('defaultModel'), data.model_default || '—'],
+      [t('balanceCheck'), humanDuration(intervals.balance)],
+      [t('coldCheck'), humanDuration(intervals.cold)],
+      [t('maxAttempts'), intervals.attempts ? String(intervals.attempts) : '—'],
+      [t('log'), data.log_file || t('stderrForeground')],
     ];
     renderMetaItems(items);
   }
 
   function renderMetaEmpty() {
-    renderMetaItems([
-      ['后台 daemon', '—'], ['版本', '—'], ['运行时长', '—'],
-      ['路由策略', '—'], ['默认模型', '—'], ['余额检查', '—'],
-      ['冷池检查', '—'], ['最多尝试', '—'], ['日志', '—'],
-    ]);
+    const labels = ['endpoint', 'daemon', 'version', 'uptime', 'strategy', 'defaultModel', 'balanceCheck', 'coldCheck', 'maxAttempts', 'log'];
+    renderMetaItems(labels.map((key) => [t(key), '—']));
   }
 
   function renderMetaItems(items) {
@@ -1544,7 +1526,8 @@
     const banner = $('banner');
     const text = $('banner-text');
     const action = $('banner-action');
-    if (!model && !ui.error) {
+
+    if (!model && !state.error) {
       banner.hidden = true;
       return;
     }
@@ -1554,34 +1537,34 @@
     let actionLabel = '';
     let actionFn = null;
 
-    if (ui.error) {
-      tone = 'error';
-      title = '无法连接 daemon：' + ui.error;
-      actionLabel = '重试';
+    if (state.error) {
+      tone = 'bad';
+      title = t('bannerCannotConnect', { error: state.error });
+      actionLabel = t('retry');
       actionFn = () => fetchData({ force: true });
     } else if (model.counts.total === 0) {
       tone = 'neutral';
-      title = '还没有 key。把 DeepSeek key 写入 keys.txt 或 config.yaml，然后重启 daemon。';
+      title = t('bannerNoKeys');
     } else if (model.counts.hot === 0) {
       if (model.counts.cold > 0) {
         tone = 'warn';
-        title = '没有可接流量的热 key。冷池会在充值后自动回热，也可以手动刷新余额。';
-        actionLabel = '刷新余额';
+        title = t('bannerNoHotCold');
+        actionLabel = t('refreshBalancesAction');
         actionFn = () => fetchData({ probe: true, force: true });
       } else if (model.counts.cooling > 0) {
         tone = 'warn';
-        title = '所有热 key 都在冷却中，请求可能暂时失败。';
-        actionLabel = '刷新余额';
+        title = t('bannerAllCooling');
+        actionLabel = t('refreshBalancesAction');
         actionFn = () => fetchData({ probe: true, force: true });
       } else if (model.counts.probing > 0) {
         tone = 'neutral';
-        title = '正在检查 key 余额，稍等片刻。';
+        title = t('bannerChecking');
       } else if (model.counts.invalid > 0) {
         tone = 'bad';
-        title = '所有 key 都不可用。查看已移除的 key 并尝试恢复。';
+        title = t('bannerAllInvalid');
       } else {
         tone = 'bad';
-        title = '没有可用的 key。';
+        title = t('bannerNoKeysAvailable');
       }
     }
 
@@ -1602,76 +1585,56 @@
     }
   }
 
+  function renderAll() {
+    if (!state.data) {
+      renderDisconnected();
+      return;
+    }
+    const model = state.derived || derive(state.data);
+    state.derived = model;
+    renderKpis(model);
+    updateFilters(model.counts);
+    renderRows(model);
+    renderMeta(state.data);
+    renderBanner(model);
+    updateStatus();
+    updateChrome();
+  }
+
   function renderDisconnected() {
-    $('addr').textContent = location.host;
-    const balance = $('hero-balance');
-    balance.classList.add('empty');
-    balance.textContent = '—';
-    balance.setAttribute('aria-label', '热池余额未知');
-    $('hero-secondary').textContent = '';
-    $('hero-sub').textContent = ui.error ? '无法读取 daemon 状态。' : '正在读取号池状态…';
-    setStatus(ui.error ? '连接失败' : '连接中', ui.error ? 'bad' : 'neutral');
-    $('hero-note').textContent = '';
-    $('chart-currency').textContent = '—';
-    $('chart-sub').textContent = ui.error ? '' : '正在读取余额…';
-    ui.chartSig = '';
-    const chart = $('bar-chart');
-    chart.replaceChildren(el('p', 'chart-empty', ui.error ? '无法读取余额。' : '正在读取余额…'));
-    renderVitalsEmpty();
+    state.derived = null;
+    renderKpisEmpty();
     updateFilters({ total: 0, hot: 0, cooling: 0, cold: 0, probing: 0, invalid: 0 });
     renderRows(null);
     renderMetaEmpty();
     renderBanner(null);
+    updateStatus();
     updateUpdated();
-    updateLiveButton();
-  }
-
-  function renderAll() {
-    if (!ui.data) {
-      renderDisconnected();
-      return;
-    }
-    const model = ui.derived || derive(ui.data);
-    ui.derived = model;
-    $('addr').textContent = ui.data.listen || location.host;
-    renderHero(ui.data, model);
-    renderChart(model);
-    renderVitals(model);
-    updateFilters(model.counts);
-    renderRows(model);
-    renderMeta(ui.data);
-    renderBanner(model);
-    updateLiveButton();
+    updateChrome();
   }
 
   function updateUpdated() {
     const node = $('updated');
-    if (!ui.lastUpdated) {
-      node.textContent = ui.error ? '连接失败' : '正在连接…';
-      node.title = ui.error || '';
+    if (!state.lastUpdated) {
+      node.textContent = state.error ? t('updatedFailed') : t('updatedConnecting');
+      node.title = state.error || '';
       return;
     }
-    const seconds = Math.max(0, Math.round((Date.now() - ui.lastUpdated) / 1000));
+    const seconds = Math.max(0, Math.round((Date.now() - state.lastUpdated) / 1000));
     let text;
-    if (seconds < 5) text = '刚刚更新';
-    else if (seconds < 60) text = seconds + ' 秒前更新';
-    else if (seconds < 3600) text = Math.round(seconds / 60) + ' 分钟前更新';
-    else text = Math.round(seconds / 3600) + ' 小时前更新';
-    if (ui.error && ui.data) text = '更新失败，' + text;
-    if (!ui.live) text = '已暂停，' + text;
+    if (seconds < 5) text = t('updatedJustNow');
+    else if (seconds < 60) text = t('updatedSecondsAgo', { n: seconds });
+    else if (seconds < 3600) text = t('updatedMinutesAgo', { n: Math.round(seconds / 60) });
+    else text = t('updatedHoursAgo', { n: Math.round(seconds / 3600) });
+    if (state.error) text = t('updatedFailed');
+    else if (!state.live) text = t('updatedPaused', { text });
     node.textContent = text;
-    node.title = new Date(ui.lastUpdated).toLocaleString('zh-CN', { hour12: false });
+    node.title = dateFmt.format(new Date(state.lastUpdated));
   }
 
   function updateCountdowns() {
     document.querySelectorAll('.countdown[data-until]').forEach((node) => {
-      let text = until(node.dataset.until);
-      if (text === '即将') {
-        text = node.dataset.kind === 'cooldown' ? '即将结束' : '即将检查';
-      }
-      node.textContent = text;
-      const absolute = fmtAbsolute(node.dataset.until);
-      if (absolute !== '—') node.title = absolute;
+      node.textContent = until(node.dataset.until);
     });
     document.querySelectorAll('.js-ago[data-time]').forEach((node) => {
       node.textContent = ago(node.dataset.time);
@@ -1680,28 +1643,56 @@
 
   function updateLiveButton() {
     const button = $('live-btn');
-    $('live-label').textContent = ui.live ? '实时' : '已暂停';
-    button.classList.toggle('paused', !ui.live);
-    button.classList.toggle('offline', Boolean(ui.error));
-    button.setAttribute('aria-pressed', ui.live ? 'true' : 'false');
-    button.setAttribute('aria-label', ui.live ? '暂停自动刷新' : '开启自动刷新');
+    $('live-label').textContent = state.live ? t('live') : t('paused');
+    button.classList.toggle('paused', !state.live);
+    button.classList.toggle('offline', Boolean(state.error));
+    button.setAttribute('aria-pressed', state.live ? 'true' : 'false');
+    button.setAttribute('aria-label', state.live ? t('pauseLive') : t('resumeLive'));
+  }
+
+  function updateThemeButton() {
+    const explicit = document.documentElement.dataset.theme;
+    const dark = explicit === 'dark' || (!explicit && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const button = $('theme-btn');
+    button.innerHTML = icon(dark ? 'sun' : 'moon');
+    button.setAttribute('aria-label', dark ? t('themeLight') : t('themeDark'));
+  }
+
+  function updateChrome() {
+    updateLiveButton();
+    updateThemeButton();
+    const button = $('refresh-btn');
+    button.setAttribute('aria-label', state.probing ? t('checkingBalances') : t('refreshBalances'));
+    $('refresh-label').textContent = state.probing ? t('checking') : t('refreshBalances');
   }
 
   function setRefreshLoading(loading) {
+    state.probing = loading;
     const button = $('refresh-btn');
     button.disabled = loading;
     button.classList.toggle('spinning', loading);
-    $('refresh-label').textContent = loading ? '检查中' : '刷新余额';
-    button.setAttribute('aria-label', loading ? '正在检查余额' : '刷新余额');
+    button.setAttribute('aria-label', loading ? t('checkingBalances') : t('refreshBalances'));
+    $('refresh-label').textContent = loading ? t('checking') : t('refreshBalances');
+  }
+
+  function schedule() {
+    if (state.timer) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
+    if (!state.live) return;
+    state.timer = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchData();
+    }, 5000);
   }
 
   async function fetchData(options) {
     const opts = options || {};
     const probe = Boolean(opts.probe);
     const force = Boolean(opts.force);
-    if (ui.loading && !force) return;
-    const seq = ++ui.fetchSeq;
-    ui.loading = true;
+    if (state.loading && !force) return;
+    const seq = ++state.fetchSeq;
+    state.loading = true;
     if (probe) setRefreshLoading(true);
     try {
       const response = await fetch(probe ? '/dashboard/refresh' : '/dashboard/data', {
@@ -1711,45 +1702,36 @@
       });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const data = await response.json();
-      if (!data || typeof data !== 'object') throw new Error('返回数据格式异常');
-      if (seq !== ui.fetchSeq) return;
-      ui.data = data;
-      ui.derived = derive(data);
-      ui.error = '';
-      ui.lastUpdated = Date.now();
+      if (!data || typeof data !== 'object') throw new Error('Invalid response');
+      if (seq !== state.fetchSeq) return;
+      state.data = data;
+      state.derived = derive(data);
+      state.error = '';
+      state.lastUpdated = Date.now();
       renderAll();
+      updateChrome();
       updateUpdated();
       if (probe) {
         const checked = Number(data.probed);
-        showToast(Number.isFinite(checked) ? '余额已刷新，检查了 ' + checked + ' 个 key' : '余额已刷新');
+        showToast(Number.isFinite(checked) ? t('balancesRefreshedN', { n: checked }) : t('balancesRefreshed'));
       }
     } catch (error) {
-      if (seq !== ui.fetchSeq) return;
-      ui.error = error && error.message ? error.message : String(error);
-      if (!ui.data) renderDisconnected();
+      if (seq !== state.fetchSeq) return;
+      state.error = error && error.message ? error.message : String(error);
+      if (!state.data) renderDisconnected();
       else {
-        renderBanner(ui.derived);
-        updateLiveButton();
+        renderBanner(state.derived);
+        updateStatus();
+        updateChrome();
       }
       updateUpdated();
-      if (probe) showToast('刷新失败：' + ui.error, true);
+      if (probe) showToast(t('refreshFailed', { error: state.error }), true);
     } finally {
-      if (seq === ui.fetchSeq) {
-        ui.loading = false;
+      if (seq === state.fetchSeq) {
+        state.loading = false;
         if (probe) setRefreshLoading(false);
       }
     }
-  }
-
-  function schedule() {
-    if (ui.timer) {
-      clearInterval(ui.timer);
-      ui.timer = null;
-    }
-    if (!ui.live) return;
-    ui.timer = setInterval(() => {
-      if (document.visibilityState === 'visible') fetchData();
-    }, 5000);
   }
 
   function showToast(message, isError) {
@@ -1757,14 +1739,14 @@
     toast.textContent = message;
     toast.classList.toggle('error', Boolean(isError));
     toast.classList.add('show');
-    if (ui.toastTimer) clearTimeout(ui.toastTimer);
-    ui.toastTimer = setTimeout(() => toast.classList.remove('show'), 3600);
+    if (state.toastTimer) clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(() => toast.classList.remove('show'), 3600);
   }
 
   async function copyText(text) {
     try {
       await navigator.clipboard.writeText(text);
-      showToast('已复制 Key ID');
+      showToast(t('keyCopied'));
       return;
     } catch (e) {}
     const area = document.createElement('textarea');
@@ -1776,122 +1758,79 @@
     area.select();
     try {
       document.execCommand('copy');
-      showToast('已复制 Key ID');
+      showToast(t('keyCopied'));
     } catch (e) {
-      showToast('复制失败，请手动选择', true);
+      showToast(t('copyFailed'), true);
     } finally {
       area.remove();
     }
   }
 
   async function restoreKey(key, button) {
-    if (!window.confirm('恢复 key「' + (key.label || key.mask || key.id) + '」？会清除自动移除标记并重新检查余额。')) {
-      return;
-    }
+    if (!window.confirm(t('restoreConfirm', { name: nameOf(key) }))) return;
     button.disabled = true;
     try {
-      const response = await fetch(
-        '/dashboard/keys/' + encodeURIComponent(key.id) + '/restore',
-        { method: 'POST' }
-      );
+      const response = await fetch('/dashboard/keys/' + encodeURIComponent(key.id) + '/restore', { method: 'POST' });
       if (!response.ok) throw new Error('HTTP ' + response.status);
-      showToast('已恢复，正在重新检查余额');
+      showToast(t('restored'));
       await fetchData({ force: true });
     } catch (error) {
-      showToast('恢复失败：' + (error && error.message ? error.message : error), true);
+      showToast(t('restoreFailed', { error: error && error.message ? error.message : error }), true);
       button.disabled = false;
     }
   }
 
-  function attachTooltip(node, text) {
-    node.addEventListener('mouseenter', () => showTooltip(node, text));
-    node.addEventListener('focus', () => showTooltip(node, text));
-    node.addEventListener('mouseleave', hideTooltip);
-    node.addEventListener('blur', hideTooltip);
-  }
-
-  function showTooltip(target, text) {
-    const tip = $('tooltip');
-    tip.textContent = text;
-    tip.hidden = false;
-    tip.style.left = '0px';
-    tip.style.top = '0px';
-    const rect = target.getBoundingClientRect();
-    const pad = 10;
-    const width = tip.offsetWidth;
-    const height = tip.offsetHeight;
-    let left = Math.min(Math.max(pad, rect.left), window.innerWidth - width - pad);
-    let top = rect.bottom + 8;
-    if (top + height > window.innerHeight - pad) top = rect.top - height - 8;
-    tip.style.left = left + 'px';
-    tip.style.top = top + 'px';
-  }
-
-  function hideTooltip() {
-    $('tooltip').hidden = true;
-  }
-
-  function currentTheme() {
-    const explicit = document.documentElement.dataset.theme;
-    if (explicit === 'light' || explicit === 'dark') return explicit;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-
-  function updateThemeButton() {
-    const dark = currentTheme() === 'dark';
-    const button = $('theme-btn');
-    button.innerHTML = icon(dark ? 'sun' : 'moon');
-    button.setAttribute('aria-label', dark ? '切换到浅色主题' : '切换到深色主题');
+  function toggleLive() {
+    state.live = !state.live;
+    storageSet('dspool-live', state.live ? '1' : '0');
+    updateLiveButton();
+    schedule();
+    if (state.live) fetchData({ force: true });
   }
 
   function toggleTheme() {
-    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    const explicit = document.documentElement.dataset.theme;
+    const dark = explicit === 'dark' || (!explicit && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = dark ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
     storageSet('dspool-theme', next);
     updateThemeButton();
   }
 
-  function toggleLive() {
-    ui.live = !ui.live;
-    storageSet('dspool-live', ui.live ? '1' : '0');
-    updateLiveButton();
-    schedule();
-    if (ui.live) fetchData({ force: true });
-  }
-
   function init() {
-    if (!['state', 'balance-asc', 'balance-desc', 'checked', 'name'].includes(ui.sort)) {
-      ui.sort = 'state';
-    }
-    $('sort').value = ui.sort;
+    if (!SORTS.includes(state.sort)) state.sort = 'state';
+    updateFormatters();
+    document.title = t('documentTitle');
+    applyStaticI18n();
     initFilters();
-    updateFilters({ total: 0, hot: 0, cooling: 0, cold: 0, probing: 0, invalid: 0 });
-    updateThemeButton();
-    updateLiveButton();
-    updateUpdated();
+    updateLanguageButtons();
+    updateChrome();
+    $('sort').value = state.sort;
     renderDisconnected();
 
+    document.querySelectorAll('[data-lang]').forEach((button) => {
+      button.addEventListener('click', () => setLanguage(button.dataset.lang));
+    });
     $('live-btn').addEventListener('click', toggleLive);
     $('theme-btn').addEventListener('click', toggleTheme);
     $('refresh-btn').addEventListener('click', () => fetchData({ probe: true, force: true }));
     $('search').addEventListener('input', (event) => {
-      ui.query = event.target.value.trim();
-      renderRows(ui.derived);
+      state.query = event.target.value.trim();
+      renderRows(state.derived);
     });
     $('sort').addEventListener('change', (event) => {
-      ui.sort = event.target.value;
-      storageSet('dspool-sort', ui.sort);
-      renderRows(ui.derived);
+      state.sort = event.target.value;
+      storageSet('dspool-sort', state.sort);
+      renderRows(state.derived);
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && ui.live) fetchData();
+      if (document.visibilityState === 'visible' && state.live) fetchData();
     });
     try {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (!document.documentElement.dataset.theme) updateThemeButton();
       });
     } catch (e) {}
-    window.addEventListener('scroll', hideTooltip, { passive: true });
 
     schedule();
     fetchData();
