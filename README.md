@@ -12,6 +12,7 @@ A local, balance-aware proxy for a pool of DeepSeek API keys. Point Claude Code,
 - Removes revoked keys (401/403) and persists tombstones across restarts.
 - Cools down keys after 429/5xx/network errors and retries on another key.
 - Serves Anthropic Messages, OpenAI Chat Completions, and Responses APIs.
+- Proxies DeepSeek's Search & Fetch APIs through the same pool.
 - Balance-aware routing: `spread` (default), `weighted`, `highest`, `drain`, `round_robin`.
 - One-command agent launch: `dspool claude`, `dspool codex`, `dspool pi`.
 - Local dashboard, background daemon, single binary, no database.
@@ -25,6 +26,7 @@ pi / SDK   ──┘         │
                        ├── /v1/messages          Anthropic passthrough
                        ├── /v1/chat/completions  OpenAI passthrough
                        ├── /v1/responses         Responses → Chat translation
+                       ├── /v1/tools/search      Search & Fetch passthrough
                        ├── hot / cold / invalid pools + cooldowns
                        └── balance monitor + dashboard
 ```
@@ -181,6 +183,8 @@ dspool pi
 
 The shortcut maintains a `dspool` provider in `$PI_CODING_AGENT_DIR/models.json` (default `~/.pi/agent/models.json`) and injects `--provider`, `--model`, and `--api-key`. Other providers are preserved.
 
+On each launch it also writes the bundled search extension to `$PI_CODING_AGENT_DIR/extensions/dspool-tools/` and exports `DSPOOL_API_KEY` and `DSPOOL_BASE_URL`. The extension registers `web_search` and `web_fetch` only when those variables are present, so plain pi sessions are unaffected. Set `DSPOOL_PI_SEARCH=0` to skip the install.
+
 For manual setup, use `openai-completions` with `baseUrl: http://127.0.0.1:8787/v1`, or `anthropic-messages` with `baseUrl: http://127.0.0.1:8787`.
 
 ### Any OpenAI-compatible client
@@ -194,6 +198,26 @@ resp = client.chat.completions.create(
     messages=[{"role": "user", "content": "hi"}],
 )
 ```
+
+### Web search and fetch
+
+dspool proxies DeepSeek's raw Search & Fetch APIs through the same key pool and failover as chat:
+
+| Endpoint | Upstream |
+| --- | --- |
+| `POST /v1/tools/search` | `POST /v1/tools/search` |
+| `POST /v1/tools/fetch` | `POST /v1/tools/fetch` |
+
+Both accept the documented JSON bodies and use the normal client token. The `/tools/search` and `/tools/fetch` aliases also work, and responses are relayed unchanged.
+
+```bash
+curl -s http://127.0.0.1:8787/v1/tools/search \
+  -H "Authorization: Bearer dspool-local" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"DeepSeek V4","count":5}'
+```
+
+`dspool pi` installs a small extension that exposes these endpoints as `web_search` and `web_fetch`. DeepSeek bills each successful search or fetch request separately from model tokens; check its current pricing.
 
 ## Dashboard and admin
 
@@ -266,6 +290,7 @@ Environment overrides: `DSPOOL_LISTEN`, `DSPOOL_STATE_FILE`, `DSPOOL_LOG_LEVEL`,
 
 - Streaming failover only happens before the first response byte.
 - `/v1/responses` is a translation layer: `previous_response_id` is rejected, server-side tools are unsupported, and some Codex-specific history items (agent messages, compaction, local shell calls) are ignored. Namespace tools and structured outputs are best-effort.
+- `/v1/tools/search` and `/v1/tools/fetch` proxy DeepSeek's raw endpoints; they do not add server-side web search to Chat Completions. Each successful request is billed by DeepSeek.
 - `count_tokens` returns a local estimate.
 - Agent shortcuts require a fixed listen port; a running daemon picks up new config only after `dspool stop && dspool start`.
 - DeepSeek model names may change. As of October 2026, dspool defaults to `deepseek-flash` and `deepseek-v4-pro`; adjust `models.*` if needed.
@@ -280,7 +305,7 @@ make race
 make build
 ```
 
-Layout: `cmd/dspool` (CLI/daemon), `internal/config`, `internal/balance`, `internal/pool`, `internal/monitor`, `internal/state`, `internal/proxy` (HTTP proxy, Responses translation, dashboard).
+Layout: `cmd/dspool` (CLI/daemon), `internal/config`, `internal/balance`, `internal/pool`, `internal/monitor`, `internal/state`, `internal/proxy` (HTTP proxy, Responses translation, dashboard), `integrations/pi/dspool-tools` (pi search/fetch extension, embedded into the binary).
 
 ## License
 

@@ -220,6 +220,7 @@ func TestHasFlag(t *testing.T) {
 func TestPiSpecUpsertsProviderAndInjectsFlags(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("PI_CODING_AGENT_DIR", dir)
+	t.Setenv("DSPOOL_PI_SEARCH", "")
 	path := filepath.Join(dir, "models.json")
 	if err := os.WriteFile(path, []byte(`{
 		"$schema": "https://pi.dev/schemas/models.schema.json",
@@ -256,6 +257,16 @@ func TestPiSpecUpsertsProviderAndInjectsFlags(t *testing.T) {
 	}
 	if spec.args[len(spec.args)-2] != "-p" || spec.args[len(spec.args)-1] != "hello" {
 		t.Fatalf("pass-through args = %v", spec.args)
+	}
+	env := map[string]string{}
+	for _, setting := range spec.env {
+		env[setting.key] = setting.value
+	}
+	if env["DSPOOL_API_KEY"] != "local-token" || env["DSPOOL_BASE_URL"] != "http://127.0.0.1:8787" {
+		t.Fatalf("env = %+v", spec.env)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "extensions", "dspool-tools", "index.ts")); err != nil {
+		t.Fatalf("pi search extension not provisioned: %v", err)
 	}
 
 	var root struct {

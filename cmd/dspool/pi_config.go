@@ -14,29 +14,35 @@ import (
 
 const piProviderID = "dspool"
 
-// piModelsPath mirrors pi's own resolution: $PI_CODING_AGENT_DIR/models.json,
-// falling back to ~/.pi/agent/models.json.
-func piModelsPath() (string, error) {
+// piAgentDir mirrors pi's own resolution: $PI_CODING_AGENT_DIR, falling back
+// to ~/.pi/agent.
+func piAgentDir() (string, error) {
 	dir := os.Getenv("PI_CODING_AGENT_DIR")
 	if dir == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			return "", fmt.Errorf("locate home directory: %w", err)
 		}
-		dir = filepath.Join(home, ".pi", "agent")
-	} else {
-		expanded, err := expandHome(dir)
+		return filepath.Join(home, ".pi", "agent"), nil
+	}
+	expanded, err := expandHome(dir)
+	if err != nil {
+		return "", err
+	}
+	if !filepath.IsAbs(expanded) {
+		abs, err := filepath.Abs(expanded)
 		if err != nil {
 			return "", err
 		}
-		dir = expanded
-		if !filepath.IsAbs(dir) {
-			abs, err := filepath.Abs(dir)
-			if err != nil {
-				return "", err
-			}
-			dir = abs
-		}
+		return abs, nil
+	}
+	return expanded, nil
+}
+
+func piModelsPath() (string, error) {
+	dir, err := piAgentDir()
+	if err != nil {
+		return "", err
 	}
 	return filepath.Join(dir, "models.json"), nil
 }

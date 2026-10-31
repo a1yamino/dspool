@@ -236,6 +236,7 @@ func piSpec(cfg *config.Config, base, token string, args []string, logger *slog.
 			model:  "as requested",
 			env: []envSetting{
 				{key: "DSPOOL_API_KEY", value: token, overwrite: true},
+				{key: "DSPOOL_BASE_URL", value: base, overwrite: true},
 			},
 			args: args,
 		}, nil
@@ -247,6 +248,9 @@ func piSpec(cfg *config.Config, base, token string, args []string, logger *slog.
 	provider, model, err := ensurePiProvider(modelsPath, base, cfg.Models.Default, cfg.Models.Small, logger)
 	if err != nil {
 		return agentSpec{}, err
+	}
+	if _, err := ensurePiSearchExtension(logger); err != nil {
+		logger.Warn("could not install pi search extension", "error", err)
 	}
 
 	injected := make([]string, 0, 8)
@@ -265,6 +269,7 @@ func piSpec(cfg *config.Config, base, token string, args []string, logger *slog.
 		model:  model,
 		env: []envSetting{
 			{key: "DSPOOL_API_KEY", value: token, overwrite: true},
+			{key: "DSPOOL_BASE_URL", value: base, overwrite: true},
 		},
 		args: append(injected, args...),
 	}, nil

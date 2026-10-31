@@ -99,6 +99,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /chat/completions", s.protect(fmtOpenAI, s.handleChatCompletions))
 	mux.HandleFunc("POST /v1/responses", s.protect(fmtOpenAI, s.handleResponses))
 	mux.HandleFunc("POST /responses", s.protect(fmtOpenAI, s.handleResponses))
+	mux.HandleFunc("POST /v1/tools/search", s.protect(fmtOpenAI, s.handleToolSearch))
+	mux.HandleFunc("POST /tools/search", s.protect(fmtOpenAI, s.handleToolSearch))
+	mux.HandleFunc("POST /v1/tools/fetch", s.protect(fmtOpenAI, s.handleToolFetch))
+	mux.HandleFunc("POST /tools/fetch", s.protect(fmtOpenAI, s.handleToolFetch))
 	mux.HandleFunc("GET /v1/models", s.protect(fmtOpenAI, s.handleModels))
 	mux.HandleFunc("GET /models", s.protect(fmtOpenAI, s.handleModels))
 

@@ -1,0 +1,13 @@
+{
+  "name": "dspool-pi-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Web search and fetch tools for pi, backed by dspool's DeepSeek pool",
+  "main": "./index.ts",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
