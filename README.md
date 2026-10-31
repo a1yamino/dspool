@@ -132,8 +132,10 @@ keys:
 
 把二进制链接到已经在 PATH 里的目录（例如 `~/.local/bin`）：
 
+在仓库根目录执行：
+
 ```bash
-ln -sfn /Users/pluto/dspool/dspool ~/.local/bin/dspool
+ln -sfn "$PWD/dspool" ~/.local/bin/dspool
 dspool --version
 ```
 
@@ -151,7 +153,7 @@ dspool pi
 2. `~/.dspool/config.yaml`
 3. 二进制所在目录（会解析软链接）的 `config.yaml`
 
-所以上面的软链接会自动使用 `/Users/pluto/dspool/config.yaml`；要切换配置，显式传 `-config /path/to/config.yaml` 即可。
+所以上面的软链接会自动使用二进制真实目录下的 `config.yaml`；要切换配置，显式传 `-config /path/to/config.yaml` 即可。
 
 
 ## 快捷命令
