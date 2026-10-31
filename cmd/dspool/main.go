@@ -22,7 +22,8 @@ func main() {
 	configPath := fs.String("config", "config.yaml", "path to the YAML config file (optional)")
 	listenFlag := fs.String("listen", "", "override listen address, e.g. 127.0.0.1:8787")
 	logLevelFlag := fs.String("log-level", "", "override log level: debug, info, warn, error")
-	noEmbed := fs.Bool("no-embed", false, "for agent commands: require an already-running proxy instead of starting one")
+	noStart := fs.Bool("no-start", false, "for agent commands: require an already-running daemon")
+	noEmbed := fs.Bool("no-embed", false, "deprecated alias for -no-start")
 	showVersion := fs.Bool("version", false, "print version and exit")
 	fs.Usage = func() { printUsage(fs) }
 
@@ -49,7 +50,8 @@ func main() {
 	var passthrough []string
 	if len(args) > 0 {
 		switch args[0] {
-		case "serve":
+		case "serve", "start", "stop", "status":
+			command = args[0]
 			passthrough = args[1:]
 		case "claude", "codex", "pi":
 			command = args[0]
@@ -102,7 +104,8 @@ func main() {
 		logger.Warn("config warning", "detail", warning)
 	}
 
-	if command == "serve" {
+	switch command {
+	case "serve":
 		if len(passthrough) > 0 {
 			logger.Error("serve does not take positional arguments", "args", passthrough)
 			fmt.Fprintln(os.Stderr, "dspool: serve does not take positional arguments")
@@ -114,9 +117,35 @@ func main() {
 			os.Exit(1)
 		}
 		return
+
+	case "start", "stop", "status":
+		if len(passthrough) > 0 {
+			fmt.Fprintf(os.Stderr, "dspool: %s does not take positional arguments\n", command)
+			os.Exit(2)
+		}
+		var cmdErr error
+		switch command {
+		case "start":
+			cmdErr = runStart(cfg, logger)
+		case "stop":
+			cmdErr = runStop(cfg)
+		case "status":
+			cmdErr = runStatus(cfg)
+			if errors.Is(cmdErr, errDaemonNotRunning) {
+				fmt.Println("dspool is not running")
+				os.Exit(1)
+			}
+		}
+		if cmdErr != nil {
+			logger.Error("command failed", "command", command, "error", cmdErr)
+			fmt.Fprintln(os.Stderr, "dspool:", cmdErr)
+			os.Exit(1)
+		}
+		return
 	}
 
-	code, err := runAgent(cfg, logger, command, passthrough, *noEmbed)
+	requireDaemon := *noStart || *noEmbed
+	code, err := runAgent(cfg, logger, command, passthrough, requireDaemon)
 	if err != nil {
 		logger.Error("could not start agent", "agent", command, "error", err)
 		fmt.Fprintln(os.Stderr, "dspool:", err)
@@ -156,11 +185,14 @@ func printUsage(fs *flag.FlagSet) {
 	fmt.Fprintf(fs.Output(), `dspool %s — DeepSeek API key pool proxy
 
 Usage:
-  dspool [flags]                Start the proxy (same as "serve")
-  dspool serve [flags]          Start the proxy
-  dspool claude [args...]       Start Claude Code with dspool env + args pass-through
-  dspool codex [args...]        Start Codex CLI with dspool env + args pass-through
-  dspool pi [args...]           Start pi with dspool env + args pass-through
+  dspool [flags]                Start the proxy in the foreground (same as "serve")
+  dspool serve [flags]          Start the proxy in the foreground
+  dspool start                  Start the proxy as a background daemon
+  dspool stop                   Stop the background daemon
+  dspool status                 Show daemon status
+  dspool claude [args...]       Start Claude Code (starts the daemon if needed)
+  dspool codex [args...]        Start Codex CLI (starts the daemon if needed)
+  dspool pi [args...]           Start pi (starts the daemon if needed)
   dspool help                   Show this help
 
 Flags must come before the subcommand. Everything after an agent name is passed
@@ -173,7 +205,8 @@ Flags:
   -config <path>      Config file (default config.yaml; may be absent for env-only use)
   -listen <addr>      Override listen address
   -log-level <level>  debug, info, warn, error
-  -no-embed           Agent commands: do not auto-start a proxy
+  -no-start           Agent commands: require an already-running daemon
+  -no-embed           Deprecated alias for -no-start
   -version            Print version
 `, version)
 }

@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -356,9 +357,11 @@ func (s *Server) statusPayload(includeTombstones bool) map[string]any {
 	counts := s.pool.Counts()
 	payload := map[string]any{
 		"version":         s.version,
+		"pid":             os.Getpid(),
 		"uptime_seconds":  int64(time.Since(s.started).Seconds()),
 		"generated_at":    time.Now().UTC(),
 		"listen":          s.cfg.Listen,
+		"log_file":        s.cfg.LogFile,
 		"strategy":        s.cfg.Pool.Strategy,
 		"counts":          counts,
 		"keys":            s.pool.Snapshots(),

@@ -100,10 +100,16 @@ cp keys.txt.example keys.txt
 $EDITOR keys.txt          # 填入你的 DeepSeek key
 
 make build
+
+# 前台运行（Ctrl-C 停止）
 ./dspool -config config.yaml
+
+# 或者后台常驻
+./dspool -config config.yaml start
+./dspool -config config.yaml status
 ```
 
-打开 <http://127.0.0.1:8787/> 查看 dashboard。
+打开 <http://127.0.0.1:8787/> 查看 dashboard。后台模式用 `dspool -config config.yaml stop` 停止。
 
 也可以不用配置文件：
 
@@ -160,7 +166,15 @@ dspool pi -p "hello"
 
 行为：
 
-- 如果配置的监听地址上已经有 dspool 在跑，就直接复用；否则自动启动一个内嵌代理，agent 退出后关闭。想强制使用已经常驻的代理，加 `-no-embed`。
+- 如果配置的监听地址上已经有 dspool 在跑，就直接复用；否则自动在后台启动一个**脱离终端**的 daemon，agent 退出后 daemon 继续运行并继续提供 dashboard。
+- daemon 管理：
+  ```bash
+  dspool start     # 启动后台 daemon
+  dspool status    # 查看 pid / key 池 / uptime
+  dspool stop      # 停止 daemon
+  ```
+  也可以用 `dspool serve` 在前台运行（适合 systemd/launchd 或调试）。
+- 想强制使用已经存在的 daemon、不允许自动启动，加 `-no-start`（旧别名 `-no-embed`）。
 - 子命令后面的所有参数原样透传，agent 的退出码也会原样返回。
 - 全局 flag 必须放在子命令前：`dspool -config other.yaml claude --resume`。
 - 自动配置：
@@ -169,9 +183,16 @@ dspool pi -p "hello"
   - **pi**：自动写入/更新 `$PI_CODING_AGENT_DIR/models.json`（默认 `~/.pi/agent/models.json`）里的 `providers.dspool`，并注入 `--provider dspool --model ... --api-key ...`；其他 provider 保留。`pi --help`、`pi install` 等子命令不会改配置，也不会注入模型参数。
 - 客户端 token 使用 `client_keys` 第一项；没配置时用 `dspool-local`（代理此时接受任意 token）。
 - 如果机器设置了 `HTTP_PROXY`/`HTTPS_PROXY`，快捷命令会给 agent 追加本地 `NO_PROXY=127.0.0.1,localhost`，避免本地请求被送到前向代理；Codex 还会开启按目标解析系统代理。
-- 内嵌代理只在这个 agent 进程存活期间运行。要常驻、给多个客户端共享，先 `dspool serve`，然后在各终端用 `dspool -no-embed claude` / `dspool -no-embed codex` / `dspool -no-embed pi`。如果直接用快捷命令同时开多个 agent，第一个退出时会关闭它启动的内嵌代理。
-- 快捷命令默认把 dspool 自己的日志写到 `<state_file 所在目录>/dspool-agent.log`（默认 `data/dspool-agent.log`），不会混进 Claude Code / Codex / pi 的终端界面。可以用 `log_file` 或 `DSPOOL_LOG_FILE` 改路径；`dspool serve` 默认仍输出到 stderr。
+- 多个 agent 会共享同一个后台 daemon，不会再出现“第一个 agent 退出把代理带走”的问题。
+- 自动启动 daemon 需要一个固定监听端口（例如默认的 `127.0.0.1:8787`）；`listen: 127.0.0.1:0` 只能用于前台测试。
+- 日志：
+  - daemon：`<state_file 所在目录>/dspool.log`（默认 `data/dspool.log`）
+  - agent 快捷命令启动器：`<state_file 所在目录>/dspool-agent.log`（默认 `data/dspool-agent.log`）
+  - 两者都可以用 `log_file` / `DSPOOL_LOG_FILE` 改路径；`dspool serve` 前台默认仍输出到 stderr。
+  所以 Claude Code / Codex / pi 的终端界面不会再混入 dspool 日志。
 - `dspool pi` 自动维护配置要求 `models.json` 是严格 JSON；如果文件里有注释导致解析失败，它会报错而不会覆盖文件。可以手动按下面的 pi 示例添加 provider，或先去掉注释。
+- 重新编译二进制后，正在运行的 daemon 仍然是旧版本；执行 `dspool stop && dspool start` 换到新版本。
+- 从早期版本升级时，旧 daemon 的状态里没有 PID，`dspool stop` 无法自动停掉它；先手动停止旧进程（前台 Ctrl-C，或按 `lsof -nP -iTCP:8787 -sTCP:LISTEN` 找到 PID 后 kill），再运行 `dspool start`。如果旧进程是早期 `dspool claude` 的内嵌代理，kill 它会同时结束那个 agent，建议在 agent 空闲时操作。
 
 ## 客户端接入
 
@@ -362,7 +383,7 @@ curl -s http://127.0.0.1:8787/healthz
 | `listen` | `127.0.0.1:8787` | HTTP 监听地址 |
 | `state_file` | `data/state.json` | tombstone 持久化文件；相对路径基于配置文件目录 |
 | `log_level` | `info` | `debug` / `info` / `warn` / `error` |
-| `log_file` | `""` | 日志文件；空时 `serve` 写 stderr，agent 快捷命令写 `<state_file 目录>/dspool-agent.log` |
+| `log_file` | `""` | daemon/日志文件；空时后台 daemon 写 `<state_file 目录>/dspool.log`，前台 serve 写 stderr，agent 启动器写 `dspool-agent.log` |
 | `client_keys` | `[]` | 客户端 token 列表；空 = 接受任意 token |
 | `admin_token` | `""` | `/admin/*` token；空时只允许 loopback |
 | `max_body_bytes` | `67108864` | 请求体上限（64 MiB） |
@@ -528,7 +549,7 @@ internal/proxy/        HTTP 代理、Responses 转换、dashboard
   - thinking 模式下 DeepSeek 不接受 `tool_choice: required` 或指定工具，代理会降级为 `auto`。
   - reasoning 内容不会被翻译成 Responses 的 reasoning summary。
 - `dspool pi` 会在 `models.json` 里维护 `providers.dspool`；如果该文件不是严格 JSON（例如带注释），自动维护会报错并保持原文件不变。
-- 快捷命令依赖 agent 对 `NO_PROXY` 的支持；Codex 额外启用 `features.respect_system_proxy=true`。如果某个 agent 版本仍然把 localhost 请求送进前向代理，可以去掉代理环境变量后再启动（或使用 `-no-embed` 配合自己控制的环境）。
+- 快捷命令依赖 agent 对 `NO_PROXY` 的支持；Codex 额外启用 `features.respect_system_proxy=true`。如果某个 agent 版本仍然把 localhost 请求送进前向代理，可以去掉代理环境变量后再启动（或使用 `-no-start` 配合自己控制的环境）。
 - `count_tokens` 是本地估算，不是精确 tokenizer。
 - 没有内建 Prometheus metrics；需要的话看 `/admin/status` 或 dashboard。
 - 余额轮询会按 key 数产生请求（默认每个热 key 每 30 秒一次），key 特别多时可以调大 `balance_interval`。

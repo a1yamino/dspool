@@ -34,7 +34,7 @@ type agentSpec struct {
 	args   []string
 }
 
-func runAgent(cfg *config.Config, logger *slog.Logger, command string, args []string, noEmbed bool) (int, error) {
+func runAgent(cfg *config.Config, logger *slog.Logger, command string, args []string, noStart bool) (int, error) {
 	switch command {
 	case "claude", "codex", "pi":
 	default:
@@ -45,49 +45,33 @@ func runAgent(cfg *config.Config, logger *slog.Logger, command string, args []st
 		return 1, fmt.Errorf("%s not found in PATH; install it first", command)
 	}
 
-	base, baseErr := baseURLFromListen(cfg.Listen)
-	external := false
-	if baseErr == nil && !noEmbed && proxyRunning(base) {
-		external = true
+	base, err := daemonBase(cfg)
+	if err != nil {
+		return 1, err
 	}
 
-	var rt *running
-	if !external {
-		if noEmbed {
-			target := base
-			if baseErr != nil {
-				target = cfg.Listen
-			}
-			return 1, fmt.Errorf("no dspool proxy is reachable at %s; start `dspool serve` first or drop -no-embed", target)
+	if noStart {
+		if !proxyRunning(base) {
+			return 1, fmt.Errorf("no dspool daemon is running at %s; run `dspool start` first or drop -no-start/-no-embed", base)
 		}
-		logger.Info("starting embedded proxy", "listen", cfg.Listen)
-		c, err := buildCore(cfg, logger)
-		if err != nil {
-			return 1, err
-		}
-		rt, err = c.start()
-		if err != nil {
-			return 1, err
-		}
-		defer rt.shutdown()
-		base, err = rt.baseURL()
-		if err != nil {
-			return 1, err
-		}
-		go func() {
-			if serveErr := <-rt.errCh; serveErr != nil {
-				logger.Error("embedded proxy stopped", "error", serveErr)
-			}
-		}()
+		logger.Info("using existing dspool daemon", "base_url", base)
 	} else {
-		logger.Info("using existing dspool proxy", "base_url", base)
-	}
-
-	if len(cfg.ClientKeys) == 0 && !urlIsLoopback(base) {
-		return 1, fmt.Errorf("client_keys is empty but the proxy URL %s is not loopback; add client_keys to config.yaml or listen on 127.0.0.1", base)
+		var started bool
+		base, _, started, err = ensureDaemon(cfg, logger)
+		if err != nil {
+			return 1, err
+		}
+		if started {
+			logger.Info("started background dspool daemon", "base_url", base)
+		} else {
+			logger.Info("using existing dspool daemon", "base_url", base)
+		}
 	}
 
 	token := clientToken(cfg)
+	if err := checkDaemonToken(base, token); err != nil {
+		return 1, err
+	}
 	var spec agentSpec
 	switch command {
 	case "claude":
@@ -126,16 +110,12 @@ func runAgent(cfg *config.Config, logger *slog.Logger, command string, args []st
 	env = addNoProxy(env, noProxyHosts...)
 	cmd.Env = env
 
-	proxyMode := "embedded"
-	if external {
-		proxyMode = "external"
-	}
 	logger.Info("starting agent",
 		"agent", command,
 		"binary", binary,
 		"base_url", base,
 		"model", spec.model,
-		"proxy", proxyMode,
+		"proxy", "daemon",
 	)
 
 	started := time.Now()
