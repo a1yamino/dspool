@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"dspool/internal/config"
@@ -62,7 +63,18 @@ func main() {
 		}
 	}
 
-	cfg, warnings, err := config.Load(*configPath, explicitConfig)
+	effectiveConfigPath := *configPath
+	usedFallbackConfig := false
+	if !explicitConfig {
+		if _, statErr := os.Stat(effectiveConfigPath); errors.Is(statErr, os.ErrNotExist) {
+			if fallback := findDefaultConfig(); fallback != "" {
+				effectiveConfigPath = fallback
+				usedFallbackConfig = true
+			}
+		}
+	}
+
+	cfg, warnings, err := config.Load(effectiveConfigPath, explicitConfig || usedFallbackConfig)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "dspool:", err)
 		os.Exit(1)
@@ -76,6 +88,9 @@ func main() {
 
 	logger := newLogger(cfg.LogLevel)
 	slog.SetDefault(logger)
+	if usedFallbackConfig {
+		logger.Info("using fallback config file", "path", effectiveConfigPath)
+	}
 	for _, warning := range warnings {
 		logger.Warn("config warning", "detail", warning)
 	}
@@ -85,7 +100,7 @@ func main() {
 			logger.Error("serve does not take positional arguments", "args", passthrough)
 			os.Exit(2)
 		}
-		if err := runServe(cfg, logger, *configPath, explicitConfig); err != nil {
+		if err := runServe(cfg, logger, effectiveConfigPath, explicitConfig || usedFallbackConfig); err != nil {
 			logger.Error("proxy stopped with an error", "error", err)
 			os.Exit(1)
 		}
@@ -100,6 +115,31 @@ func main() {
 	if code != 0 {
 		os.Exit(code)
 	}
+}
+
+// findDefaultConfig makes a PATH-installed dspool usable outside the project
+// directory. It checks a user config first, then the directory containing the
+// real executable (following symlinks).
+func findDefaultConfig() string {
+	var candidates []string
+	if home, err := os.UserHomeDir(); err == nil {
+		candidates = append(candidates,
+			filepath.Join(home, ".config", "dspool", "config.yaml"),
+			filepath.Join(home, ".dspool", "config.yaml"),
+		)
+	}
+	if exe, err := os.Executable(); err == nil {
+		if real, err := filepath.EvalSymlinks(exe); err == nil {
+			exe = real
+		}
+		candidates = append(candidates, filepath.Join(filepath.Dir(exe), "config.yaml"))
+	}
+	for _, path := range candidates {
+		if info, err := os.Stat(path); err == nil && !info.IsDir() {
+			return path
+		}
+	}
+	return ""
 }
 
 func printUsage(fs *flag.FlagSet) {

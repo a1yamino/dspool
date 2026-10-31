@@ -122,6 +122,32 @@ keys:
 
 `config.yaml`、`keys.txt`、`data/` 默认被 `.gitignore` 忽略。
 
+### 安装到 PATH
+
+把二进制链接到已经在 PATH 里的目录（例如 `~/.local/bin`）：
+
+```bash
+ln -sfn /Users/pluto/dspool/dspool ~/.local/bin/dspool
+dspool --version
+```
+
+之后可以在任意目录使用：
+
+```bash
+dspool claude
+dspool codex
+dspool pi
+```
+
+找不到 `./config.yaml` 时，dspool 会依次尝试：
+
+1. `~/.config/dspool/config.yaml`
+2. `~/.dspool/config.yaml`
+3. 二进制所在目录（会解析软链接）的 `config.yaml`
+
+所以上面的软链接会自动使用 `/Users/pluto/dspool/config.yaml`；要切换配置，显式传 `-config /path/to/config.yaml` 即可。
+
+
 ## 快捷命令
 
 不想手写环境变量时，可以直接用 dspool 启动 agent：
