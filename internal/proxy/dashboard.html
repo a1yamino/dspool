@@ -447,6 +447,8 @@
   @media (max-width: 420px) {
     #refresh-btn .btn-label { display: none; }
     #refresh-btn { width: 34px; padding: 0; }
+    #reload-btn .btn-label { display: none; }
+    #reload-btn { width: 34px; padding: 0; }
     .live-toggle { padding: 0 8px; }
     .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
@@ -465,6 +467,7 @@
 <body>
 <svg class="sr-only" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute">
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-.8 4.2"/><path d="M20 4v7h-7"/></symbol>
+  <symbol id="i-reload" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v6h6"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></symbol>
@@ -564,6 +567,10 @@
           </select>
           <svg class="icon" aria-hidden="true"><use href="#i-chevron"></use></svg>
         </label>
+        <button class="btn" id="reload-btn" type="button" aria-label="Reload keys from keys.txt">
+          <svg class="icon" aria-hidden="true"><use href="#i-reload"></use></svg>
+          <span class="btn-label" id="reload-label">Reload keys</span>
+        </button>
       </div>
     </div>
     <div class="filters" id="filters" role="group" aria-label="Filter keys by state" data-i18n-aria="filterKeys"></div>
@@ -643,6 +650,12 @@
       refreshBalances: 'Refresh balances',
       checking: 'Checking…',
       checkingBalances: 'Checking balances…',
+      reloadKeys: 'Reload keys',
+      reloading: 'Reloading…',
+      reloadKeysHint: 'Re-read keys.txt and config.yaml without restarting the daemon',
+      keysReloaded: (v) => `Keys reloaded: ${v.added} added, ${v.removed} removed`,
+      keysReloadedNoChange: 'Keys reloaded; no changes',
+      reloadFailed: (v) => `Reload failed: ${v.error}`,
       live: 'Live',
       paused: 'Paused',
       pauseLive: 'Pause live updates',
@@ -716,7 +729,7 @@
       durationHours: (v) => v.m ? `${v.h}h ${v.m}m` : `${v.h}h`,
       durationDays: (v) => v.h ? `${v.d}d ${v.h}h` : `${v.d}d`,
       bannerCannotConnect: (v) => `Cannot reach the daemon: ${v.error}`,
-      bannerNoKeys: 'No keys yet. Add a DeepSeek key to keys.txt or config.yaml, then restart the daemon.',
+      bannerNoKeys: 'No keys yet. Add a DeepSeek key to keys.txt or config.yaml, then reload keys.',
       bannerNoHotCold: 'No hot keys. Cold keys recover after a top-up; refresh balances to check now.',
       bannerAllCooling: 'All hot keys are cooling down. Requests may fail until a cooldown ends.',
       bannerChecking: 'Checking key balances…',
@@ -736,7 +749,7 @@
       noMatching: 'No keys match the current filter.',
       tryDifferent: 'Try a different filter or clear the search.',
       noKeysYet: 'No keys yet.',
-      addKeyHint: 'Add a key to keys.txt, then restart the daemon.',
+      addKeyHint: 'Add a key to keys.txt, then click Reload keys.',
     },
     zh: {
       documentTitle: 'dspool · DeepSeek 号池',
@@ -767,6 +780,12 @@
       refreshBalances: '刷新余额',
       checking: '检查中…',
       checkingBalances: '正在检查余额…',
+      reloadKeys: '重载 key',
+      reloading: '重载中…',
+      reloadKeysHint: '重新读取 keys.txt 和 config.yaml，无需重启 daemon',
+      keysReloaded: (v) => `已重载 key：新增 ${v.added} 个，移除 ${v.removed} 个`,
+      keysReloadedNoChange: '已重载 key，没有变化',
+      reloadFailed: (v) => `重载失败：${v.error}`,
       live: '实时',
       paused: '已暂停',
       pauseLive: '暂停实时更新',
@@ -840,7 +859,7 @@
       durationHours: (v) => v.m ? `${v.h} 小时 ${v.m} 分钟` : `${v.h} 小时`,
       durationDays: (v) => v.h ? `${v.d} 天 ${v.h} 小时` : `${v.d} 天`,
       bannerCannotConnect: (v) => `无法连接 daemon：${v.error}`,
-      bannerNoKeys: '还没有 key。把 DeepSeek key 写入 keys.txt 或 config.yaml，然后重启 daemon。',
+      bannerNoKeys: '还没有 key。把 DeepSeek key 写入 keys.txt 或 config.yaml，然后点击重载 key。',
       bannerNoHotCold: '没有可用热 key。冷池中的 key 会在充值后恢复，也可以手动刷新余额。',
       bannerAllCooling: '所有热 key 都在冷却中，请求可能暂时失败。',
       bannerChecking: '正在检查 key 余额…',
@@ -860,7 +879,7 @@
       noMatching: '没有符合当前筛选的 key。',
       tryDifferent: '换个筛选条件或清空搜索。',
       noKeysYet: '还没有 key。',
-      addKeyHint: '把 key 写入 keys.txt 后重启 daemon。',
+      addKeyHint: '把 key 写入 keys.txt 后点击重载 key。',
     },
   };
 
@@ -877,6 +896,7 @@
     expanded: new Set(),
     loading: false,
     probing: false,
+    reloading: false,
     fetchSeq: 0,
     filters: new Map(),
     timer: null,
@@ -1664,6 +1684,10 @@
     const button = $('refresh-btn');
     button.setAttribute('aria-label', state.probing ? t('checkingBalances') : t('refreshBalances'));
     $('refresh-label').textContent = state.probing ? t('checking') : t('refreshBalances');
+    const reloadButton = $('reload-btn');
+    reloadButton.setAttribute('aria-label', state.reloading ? t('reloading') : t('reloadKeysHint'));
+    reloadButton.title = t('reloadKeysHint');
+    $('reload-label').textContent = state.reloading ? t('reloading') : t('reloadKeys');
   }
 
   function setRefreshLoading(loading) {
@@ -1673,6 +1697,15 @@
     button.classList.toggle('spinning', loading);
     button.setAttribute('aria-label', loading ? t('checkingBalances') : t('refreshBalances'));
     $('refresh-label').textContent = loading ? t('checking') : t('refreshBalances');
+  }
+
+  function setReloadLoading(loading) {
+    state.reloading = loading;
+    const button = $('reload-btn');
+    button.disabled = loading;
+    button.classList.toggle('spinning', loading);
+    button.setAttribute('aria-label', loading ? t('reloading') : t('reloadKeysHint'));
+    $('reload-label').textContent = loading ? t('reloading') : t('reloadKeys');
   }
 
   function schedule() {
@@ -1689,18 +1722,24 @@
   async function fetchData(options) {
     const opts = options || {};
     const probe = Boolean(opts.probe);
+    const reload = Boolean(opts.reload);
     const force = Boolean(opts.force);
     if (state.loading && !force) return;
     const seq = ++state.fetchSeq;
     state.loading = true;
     if (probe) setRefreshLoading(true);
+    if (reload) setReloadLoading(true);
     try {
-      const response = await fetch(probe ? '/dashboard/refresh' : '/dashboard/data', {
-        method: probe ? 'POST' : 'GET',
+      const endpoint = reload ? '/dashboard/reload' : probe ? '/dashboard/refresh' : '/dashboard/data';
+      const response = await fetch(endpoint, {
+        method: reload || probe ? 'POST' : 'GET',
         cache: 'no-store',
-        headers: probe ? { 'Content-Type': 'application/json' } : undefined,
+        headers: reload || probe ? { 'Content-Type': 'application/json' } : undefined,
       });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+      if (!response.ok) {
+        const detail = await response.json().catch(() => null);
+        throw new Error(detail && detail.error ? detail.error : 'HTTP ' + response.status);
+      }
       const data = await response.json();
       if (!data || typeof data !== 'object') throw new Error('Invalid response');
       if (seq !== state.fetchSeq) return;
@@ -1711,7 +1750,12 @@
       renderAll();
       updateChrome();
       updateUpdated();
-      if (probe) {
+      if (reload) {
+        const result = data.reloaded || {};
+        const added = Number(result.added) || 0;
+        const removed = Number(result.removed) || 0;
+        showToast(added || removed ? t('keysReloaded', { added, removed }) : t('keysReloadedNoChange'));
+      } else if (probe) {
         const checked = Number(data.probed);
         showToast(Number.isFinite(checked) ? t('balancesRefreshedN', { n: checked }) : t('balancesRefreshed'));
       }
@@ -1725,11 +1769,13 @@
         updateChrome();
       }
       updateUpdated();
-      if (probe) showToast(t('refreshFailed', { error: state.error }), true);
+      if (reload) showToast(t('reloadFailed', { error: state.error }), true);
+      else if (probe) showToast(t('refreshFailed', { error: state.error }), true);
     } finally {
       if (seq === state.fetchSeq) {
         state.loading = false;
         if (probe) setRefreshLoading(false);
+        if (reload) setReloadLoading(false);
       }
     }
   }
@@ -1814,6 +1860,7 @@
     $('live-btn').addEventListener('click', toggleLive);
     $('theme-btn').addEventListener('click', toggleTheme);
     $('refresh-btn').addEventListener('click', () => fetchData({ probe: true, force: true }));
+    $('reload-btn').addEventListener('click', () => fetchData({ reload: true, force: true }));
     $('search').addEventListener('input', (event) => {
       state.query = event.target.value.trim();
       renderRows(state.derived);

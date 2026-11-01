@@ -1,10 +1,14 @@
 BINARY := dspool
 VERSION ?= 0.1.0
 
-.PHONY: build test race run fmt vet clean
+.PHONY: build test race run fmt vet clean restart
 
 build:
 	go build -trimpath -ldflags "-s -w" -o $(BINARY) ./cmd/dspool
+
+restart: build
+	./$(BINARY) stop
+	./$(BINARY) start
 
 test:
 	go test ./...

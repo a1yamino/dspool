@@ -34,6 +34,26 @@ func (s *Server) handleDashboardRefresh(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, payload)
 }
 
+func (s *Server) handleDashboardReload(w http.ResponseWriter, r *http.Request) {
+	s.writeReloadPayload(w, false)
+}
+
+// writeReloadPayload reconciles the pool with the current key file and returns
+// the fresh pool status plus a summary of what changed.
+func (s *Server) writeReloadPayload(w http.ResponseWriter, withTombstones bool) {
+	diff, err := s.ReloadKeys()
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": err.Error()})
+		return
+	}
+	payload := s.statusPayload(withTombstones)
+	payload["reloaded"] = map[string]any{
+		"added":   len(diff.Added),
+		"removed": len(diff.Removed),
+	}
+	writeJSON(w, http.StatusOK, payload)
+}
+
 func (s *Server) handleDashboardRestore(w http.ResponseWriter, r *http.Request) {
 	s.restoreKey(w, r)
 }

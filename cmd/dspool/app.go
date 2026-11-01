@@ -149,6 +149,10 @@ func runServe(cfg *config.Config, logger *slog.Logger, configPath string, explic
 	if err != nil {
 		return err
 	}
+	c.server.SetKeyReloader(func() (pool.KeyDiff, error) {
+		return reloadKeys(configPath, explicit, c.pool, c.monitor, logger)
+	})
+
 	r, err := c.start()
 	if err != nil {
 		return err
@@ -163,7 +167,7 @@ func runServe(cfg *config.Config, logger *slog.Logger, configPath string, explic
 		select {
 		case sig := <-sigCh:
 			if sig == syscall.SIGHUP {
-				reloadKeys(configPath, explicit, c.pool, c.monitor, logger)
+				_, _ = c.server.ReloadKeys()
 				continue
 			}
 			logger.Info("shutting down", "signal", sig.String())
@@ -177,11 +181,11 @@ func runServe(cfg *config.Config, logger *slog.Logger, configPath string, explic
 	}
 }
 
-func reloadKeys(path string, explicit bool, p *pool.Pool, mon *monitor.Monitor, log *slog.Logger) {
+func reloadKeys(path string, explicit bool, p *pool.Pool, mon *monitor.Monitor, log *slog.Logger) (pool.KeyDiff, error) {
 	newCfg, warnings, err := config.Load(path, explicit)
 	if err != nil {
 		log.Error("config reload failed; keeping current keys", "error", err)
-		return
+		return pool.KeyDiff{}, err
 	}
 	for _, warning := range warnings {
 		log.Warn("config warning", "detail", warning)
@@ -202,6 +206,7 @@ func reloadKeys(path string, explicit bool, p *pool.Pool, mon *monitor.Monitor, 
 		"note", "other config changes require a restart",
 	)
 	mon.Wake()
+	return diff, nil
 }
 
 func baseURLFromAddr(addr string) (string, error) {

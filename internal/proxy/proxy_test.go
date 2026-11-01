@@ -199,6 +199,30 @@ func TestProxyAuthAndDashboard(t *testing.T) {
 	if !strings.Contains(refreshed, `"probed"`) {
 		t.Fatalf("refresh response = %s", refreshed)
 	}
+
+	env.server.SetKeyReloader(func() (pool.KeyDiff, error) {
+		return pool.KeyDiff{Added: []pool.Snapshot{{Label: "new-key"}}}, nil
+	})
+	resp = env.do(t, http.MethodPost, "/dashboard/reload", "", "")
+	if resp.StatusCode != 200 {
+		t.Fatalf("dashboard reload status = %d", resp.StatusCode)
+	}
+	reloaded := readAll(t, resp)
+	if !strings.Contains(reloaded, `"added":1`) || !strings.Contains(reloaded, `"removed":0`) {
+		t.Fatalf("reload response = %s", reloaded)
+	}
+
+	env.server.SetKeyReloader(func() (pool.KeyDiff, error) {
+		return pool.KeyDiff{}, fmt.Errorf("config.yaml: unexpected end of file")
+	})
+	resp = env.do(t, http.MethodPost, "/dashboard/reload", "", "")
+	if resp.StatusCode != http.StatusInternalServerError {
+		t.Fatalf("failed reload status = %d", resp.StatusCode)
+	}
+	failed := readAll(t, resp)
+	if !strings.Contains(failed, "unexpected end of file") {
+		t.Fatalf("failed reload response = %s", failed)
+	}
 }
 
 type upstreamLog struct {

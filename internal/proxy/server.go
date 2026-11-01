@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"dspool/internal/config"
@@ -33,6 +34,30 @@ type Server struct {
 	mapper       *ModelMapper
 	client       *http.Client
 	clientHashes map[string]struct{}
+
+	reloadMu  sync.Mutex
+	keyReload KeyReloader
+}
+
+// KeyReloader re-reads the key configuration and reconciles the pool. The
+// callback is supplied by cmd/dspool, which owns the config path.
+type KeyReloader func() (pool.KeyDiff, error)
+
+var errNoKeyReloader = errors.New("key reloading is not available")
+
+// SetKeyReloader wires the callback behind SIGHUP, /dashboard/reload and
+// /admin/reload. It must be called before the server starts serving requests.
+func (s *Server) SetKeyReloader(fn KeyReloader) { s.keyReload = fn }
+
+// ReloadKeys re-reads the key list and reconciles the pool. Calls are
+// serialized so a dashboard click and a SIGHUP cannot interleave.
+func (s *Server) ReloadKeys() (pool.KeyDiff, error) {
+	s.reloadMu.Lock()
+	defer s.reloadMu.Unlock()
+	if s.keyReload == nil {
+		return pool.KeyDiff{}, errNoKeyReloader
+	}
+	return s.keyReload()
 }
 
 func New(
@@ -88,6 +113,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /dashboard/{$}", s.handleDashboard)
 	mux.HandleFunc("GET /dashboard/data", s.handleDashboardData)
 	mux.HandleFunc("POST /dashboard/refresh", s.handleDashboardRefresh)
+	mux.HandleFunc("POST /dashboard/reload", s.handleDashboardReload)
 	mux.HandleFunc("POST /dashboard/keys/{id}/restore", s.handleDashboardRestore)
 
 	// Proxy endpoints.
@@ -111,6 +137,7 @@ func (s *Server) Handler() http.Handler {
 	// Admin endpoints (token-gated when configured).
 	mux.HandleFunc("GET /admin/status", s.admin(s.handleAdminStatus))
 	mux.HandleFunc("POST /admin/refresh", s.admin(s.handleAdminRefresh))
+	mux.HandleFunc("POST /admin/reload", s.admin(s.handleAdminReload))
 	mux.HandleFunc("POST /admin/keys/{id}/restore", s.admin(s.handleAdminRestore))
 
 	mux.HandleFunc("/", s.handleNotFound)
@@ -436,6 +463,10 @@ func (s *Server) handleAdminRefresh(w http.ResponseWriter, r *http.Request) {
 	payload := s.statusPayload(true)
 	payload["probed"] = probed
 	writeJSON(w, http.StatusOK, payload)
+}
+
+func (s *Server) handleAdminReload(w http.ResponseWriter, r *http.Request) {
+	s.writeReloadPayload(w, true)
 }
 
 func (s *Server) handleAdminRestore(w http.ResponseWriter, r *http.Request) {

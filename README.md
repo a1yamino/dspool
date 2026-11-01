@@ -225,17 +225,19 @@ curl -s http://127.0.0.1:8787/v1/tools/search \
 
 - Refreshes every 5 seconds; pause with the live toggle.
 - English-first UI with an EN/中文 switch; the choice is remembered locally.
-- Manual balance refresh and light/dark theme.
+- Manual balance refresh, key-list reload, and light/dark theme.
 - Unauthenticated by design; it only exposes masked keys.
 
 | Endpoint | Purpose |
 | --- | --- |
 | `GET /dashboard/data` | Dashboard JSON |
 | `POST /dashboard/refresh` | Probe all balances |
+| `POST /dashboard/reload` | Re-read `keys.txt` / `config.yaml` and sync keys |
 | `POST /dashboard/keys/{id}/restore` | Restore an invalid key |
 | `GET /healthz` | 200 with any usable key, 503 otherwise |
 | `GET /admin/status` | Full status including tombstones |
 | `POST /admin/refresh` | Probe all balances |
+| `POST /admin/reload` | Re-read the key list and sync keys |
 | `POST /admin/keys/{id}/restore` | Restore an invalid key |
 
 `/admin/*` uses `admin_token` via `Authorization: Bearer` or `X-Admin-Token`; without a token it is loopback-only.
@@ -272,8 +274,8 @@ Environment overrides: `DSPOOL_LISTEN`, `DSPOOL_STATE_FILE`, `DSPOOL_LOG_LEVEL`,
 ## Operations
 
 - `state.json` stores only rejected-key fingerprints, labels, masks, and reasons; never plaintext keys.
-- Send `SIGHUP` to a foreground `serve` process to reload keys.
-- After rebuilding the binary, restart the daemon: `dspool stop && dspool start`.
+- Reload keys without a restart: click **Reload keys** in the dashboard, `POST /dashboard/reload`, or send `SIGHUP` to a foreground `serve` process. Only the key list is reloaded; other config changes need a restart.
+- After rebuilding the binary, restart the daemon with `make restart` (or `dspool stop && dspool start`).
 - `deploy/dspool.service`, `deploy/com.dspool.plist`, and the `Dockerfile` provide deployment examples.
 - Cold-pool keys recover automatically after a top-up, or immediately via a dashboard/admin refresh.
 
@@ -292,7 +294,7 @@ Environment overrides: `DSPOOL_LISTEN`, `DSPOOL_STATE_FILE`, `DSPOOL_LOG_LEVEL`,
 - `/v1/responses` is a translation layer: `previous_response_id` is rejected, server-side tools are unsupported, and some Codex-specific history items (agent messages, compaction, local shell calls) are ignored. Namespace tools and structured outputs are best-effort.
 - `/v1/tools/search` and `/v1/tools/fetch` proxy DeepSeek's raw endpoints; they do not add server-side web search to Chat Completions. Each successful request is billed by DeepSeek.
 - `count_tokens` returns a local estimate.
-- Agent shortcuts require a fixed listen port; a running daemon picks up new config only after `dspool stop && dspool start`.
+- Agent shortcuts require a fixed listen port; a running daemon only reloads the key list (dashboard button, `POST /admin/reload`, or `SIGHUP`). Other config changes need `dspool stop && dspool start`.
 - DeepSeek model names may change. As of October 2026, dspool defaults to `deepseek-flash` and `deepseek-v4-pro`; adjust `models.*` if needed.
 
 ## Development
