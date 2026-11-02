@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -19,14 +20,16 @@ import (
 // codex shortcut generates a catalog that replaces Codex's bundled one.
 //
 // Codex rejects catalog entries that carry no instructions, so every DeepSeek
-// entry is cloned from a bundled, non-lite model and keeps its prompt.
-const codexCatalogTemplateSlug = "gpt-5.5"
+// entry is cloned from Codex's bundled GPT-6 Astra entry and keeps its prompt.
+const codexCatalogTemplateSlug = "gpt-6-astra"
 
+// These are DeepSeek's canonical thinking levels. The API also accepts aliases
+// (minimal, medium, xhigh, ultra), but they collapse onto low, high or max, so
+// exposing them here would only add duplicate choices.
 var codexReasoningLevels = []any{
-	map[string]any{"effort": "low", "description": "Fast responses with lighter reasoning"},
-	map[string]any{"effort": "medium", "description": "Balances speed and reasoning depth for everyday tasks"},
-	map[string]any{"effort": "high", "description": "Greater reasoning depth for complex problems"},
-	map[string]any{"effort": "xhigh", "description": "Extra high reasoning depth for complex problems"},
+	map[string]any{"effort": "low", "description": "Low thinking effort"},
+	map[string]any{"effort": "high", "description": "High thinking effort (DeepSeek default)"},
+	map[string]any{"effort": "max", "description": "Maximum thinking effort"},
 }
 
 // ensureCodexModelCatalog writes <state_dir>/codex-model-catalog.json and
@@ -185,8 +188,9 @@ func codexCatalogEntry(template map[string]any, id string, priority int) (map[st
 	// OpenAI-specific tier and migration metadata does not apply to DeepSeek.
 	for _, key := range []string{
 		"additional_speed_tiers", "availability_nux", "comp_hash",
-		"default_verbosity", "multi_agent_version", "service_tiers",
-		"tool_mode", "upgrade",
+		"default_verbosity", "multi_agent_reasoning_effort",
+		"multi_agent_version", "node_repl_auto_review_required",
+		"node_repl_disabled", "service_tiers", "tool_mode", "upgrade",
 	} {
 		delete(entry, key)
 	}
@@ -200,15 +204,17 @@ func codexCatalogEntry(template map[string]any, id string, priority int) (map[st
 	if instructions == "" {
 		return nil, fmt.Errorf("Codex template model %q has no instructions", codexCatalogTemplateSlug)
 	}
-	instructions = strings.Replace(instructions,
-		"You are Codex, a coding agent based on GPT-5.",
-		"You are Codex, an AI coding agent running in the Codex CLI.", 1)
+	instructions = codexIdentityPrefix.ReplaceAllString(instructions,
+		"You are Codex, an AI coding agent running in the Codex CLI.")
 	entry["base_instructions"] = instructions
 	if messages, ok := entry["model_messages"].(map[string]any); ok {
 		messages["instructions_template"] = instructions
 	}
 	return entry, nil
 }
+
+// codexIdentityPrefix drops the OpenAI model identity from the cloned prompt.
+var codexIdentityPrefix = regexp.MustCompile(`^You are Codex, (?:a coding agent|an agent) based on GPT-[^.]+\.`)
 
 func codexDisplayName(id string) string {
 	switch id {

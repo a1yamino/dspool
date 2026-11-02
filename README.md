@@ -155,7 +155,7 @@ claude
 dspool codex exec "fix the failing tests"
 ```
 
-The shortcut injects a provider with `-c`, sets `DSPOOL_API_KEY`, advertises the 1M context window (`model_context_window`), and points `model_catalog_json` at a generated catalog so `/model` lists the DeepSeek models with selectable reasoning levels. The catalog is written to `<state_dir>/codex-model-catalog.json`; entries reuse the instructions of a bundled Codex model because Codex rejects catalog entries without instructions.
+The shortcut injects a provider with `-c`, sets `DSPOOL_API_KEY`, advertises the 1M context window (`model_context_window`), and points `model_catalog_json` at a generated catalog so `/model` lists the DeepSeek models with selectable reasoning levels (`low`, `high`, `max`). The catalog is written to `<state_dir>/codex-model-catalog.json`; entries reuse the bundled GPT-6 Astra instructions because Codex rejects catalog entries without instructions.
 
 Manual `~/.codex/config.toml` equivalent:
 

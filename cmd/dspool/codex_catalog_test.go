@@ -11,6 +11,30 @@ import (
 const testBundledCatalog = `{
   "models": [
     {
+      "slug": "gpt-6-astra",
+      "display_name": "GPT-6-Astra",
+      "default_reasoning_level": "low",
+      "supported_reasoning_levels": [{"effort": "low", "description": "low"}],
+      "shell_type": "unified_exec",
+      "visibility": "list",
+      "supported_in_api": true,
+      "priority": 2,
+      "additional_speed_tiers": ["fast"],
+      "service_tiers": [{"id": "priority"}],
+      "context_window": 272000,
+      "max_context_window": 872000,
+      "effective_context_window_percent": 95,
+      "use_responses_lite": true,
+      "tool_mode": "code_mode_only",
+      "multi_agent_version": "v2",
+      "multi_agent_reasoning_effort": "xhigh",
+      "node_repl_auto_review_required": true,
+      "input_modalities": ["text", "image"],
+      "supports_reasoning_effort_updates": true,
+      "base_instructions": "You are Codex, an agent based on GPT-6. Astra marker.",
+      "model_messages": {"instructions_template": "You are Codex, an agent based on GPT-6. Astra marker."}
+    },
+    {
       "slug": "gpt-6.1-sol",
       "use_responses_lite": true,
       "base_instructions": "lite model",
@@ -75,15 +99,27 @@ func TestBuildCodexModelCatalog(t *testing.T) {
 			t.Fatalf("%s should not use configuration_update effort changes", want.slug)
 		}
 		levels, _ := model["supported_reasoning_levels"].([]any)
-		if len(levels) != 4 {
+		if len(levels) != 3 {
 			t.Fatalf("%s reasoning levels = %v", want.slug, levels)
+		}
+		for i, effort := range []string{"low", "high", "max"} {
+			level, _ := levels[i].(map[string]any)
+			if level["effort"] != effort {
+				t.Fatalf("%s level %d = %v, want %s", want.slug, i, level["effort"], effort)
+			}
 		}
 		if model["service_tiers"] != nil || model["upgrade"] != nil || model["additional_speed_tiers"] != nil {
 			t.Fatalf("%s kept OpenAI tier metadata", want.slug)
 		}
+		if model["multi_agent_version"] != nil || model["tool_mode"] != nil {
+			t.Fatalf("%s kept OpenAI agent/code-mode metadata", want.slug)
+		}
 		instructions, _ := model["base_instructions"].(string)
-		if strings.Contains(instructions, "based on GPT-5") || !strings.Contains(instructions, "Codex CLI") {
+		if strings.Contains(instructions, "based on GPT") || !strings.Contains(instructions, "Codex CLI") {
 			t.Fatalf("%s instructions were not rewritten: %q", want.slug, instructions)
+		}
+		if !strings.Contains(instructions, "Astra marker") {
+			t.Fatalf("%s did not use the Astra template: %q", want.slug, instructions)
 		}
 		messages, _ := model["model_messages"].(map[string]any)
 		if messages["instructions_template"] != instructions {
