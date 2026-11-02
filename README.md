@@ -177,7 +177,7 @@ wire_api = "responses"
 export DSPOOL_API_KEY=dspool-local
 ```
 
-Codex uses the Responses API. dspool translates requests and streaming events to Chat Completions, including function tools and Codex's freeform `apply_patch` tool.
+Codex uses the Responses API. dspool translates requests and streaming events to Chat Completions, including function tools and Codex's freeform `apply_patch` tool. DeepSeek reasoning is round-tripped as Responses reasoning items and back to `reasoning_content`, because DeepSeek requires prior reasoning to be sent back in tool-calling conversations.
 
 ### pi
 

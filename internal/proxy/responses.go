@@ -47,6 +47,7 @@ type responseInputItem struct {
 	Type      string          `json:"type"`
 	Role      string          `json:"role"`
 	Content   json.RawMessage `json:"content"`
+	Summary   json.RawMessage `json:"summary"`
 	CallID    string          `json:"call_id"`
 	Name      string          `json:"name"`
 	Namespace string          `json:"namespace"`
@@ -56,10 +57,11 @@ type responseInputItem struct {
 }
 
 type chatMessage struct {
-	Role       string         `json:"role"`
-	Content    any            `json:"content"`
-	ToolCalls  []chatToolCall `json:"tool_calls,omitempty"`
-	ToolCallID string         `json:"tool_call_id,omitempty"`
+	Role             string         `json:"role"`
+	Content          any            `json:"content"`
+	ReasoningContent *string        `json:"reasoning_content,omitempty"`
+	ToolCalls        []chatToolCall `json:"tool_calls,omitempty"`
+	ToolCallID       string         `json:"tool_call_id,omitempty"`
 }
 
 type chatToolCall struct {
@@ -358,6 +360,44 @@ func effortValue(raw json.RawMessage) string {
 	return ""
 }
 
+func extractReasoningText(raw json.RawMessage) string {
+	raw = bytes.TrimSpace(raw)
+	if len(raw) == 0 || bytes.Equal(raw, []byte("null")) {
+		return ""
+	}
+	var parts []struct {
+		Type string `json:"type"`
+		Text string `json:"text"`
+	}
+	if err := json.Unmarshal(raw, &parts); err != nil {
+		return ""
+	}
+	var b strings.Builder
+	for _, part := range parts {
+		switch part.Type {
+		case "reasoning_text", "summary_text", "text", "output_text", "input_text":
+			b.WriteString(part.Text)
+		}
+	}
+	return b.String()
+}
+
+// responsesThinkingEnabled reports whether the upstream request runs with
+// thinking on. DeepSeek enables thinking by default when no thinking field is
+// sent.
+func responsesThinkingEnabled(req *responsesRequest, mode string) bool {
+	if mode == "disabled" {
+		return false
+	}
+	if mode == "enabled" {
+		return true
+	}
+	if req.Reasoning != nil && effortValue(req.Reasoning.Effort) == "none" {
+		return false
+	}
+	return true
+}
+
 func mapEffort(effort string) string {
 	switch effort {
 	case "none":
@@ -414,6 +454,19 @@ func (s *Server) buildResponsesPlan(req *responsesRequest) (*responsesPlan, erro
 
 	lastAssistant := -1
 	nonSystem := 0
+	// Codex sends reasoning as separate input items. DeepSeek's thinking mode
+	// expects the text on the assistant message instead, so buffer it and
+	// attach it to the next assistant output.
+	pendingReasoning := ""
+	pendingReasoningSet := false
+	attachReasoning := func(msg *chatMessage) {
+		if pendingReasoningSet && msg.ReasoningContent == nil {
+			text := pendingReasoning
+			msg.ReasoningContent = &text
+			pendingReasoning = ""
+			pendingReasoningSet = false
+		}
+	}
 
 	if input[0] == '"' {
 		var text string
@@ -447,6 +500,7 @@ func (s *Server) buildResponsesPlan(req *responsesRequest) (*responsesPlan, erro
 					if text != "" {
 						msg.Content = text
 					}
+					attachReasoning(&msg)
 					msgs = append(msgs, msg)
 					lastAssistant = len(msgs) - 1
 					nonSystem++
@@ -471,6 +525,7 @@ func (s *Server) buildResponsesPlan(req *responsesRequest) (*responsesPlan, erro
 					msgs = append(msgs, chatMessage{Role: "assistant"})
 					idx = len(msgs) - 1
 				}
+				attachReasoning(&msgs[idx])
 				callID := item.CallID
 				if callID == "" {
 					callID = "call_" + newRequestID()
@@ -506,7 +561,15 @@ func (s *Server) buildResponsesPlan(req *responsesRequest) (*responsesPlan, erro
 				lastAssistant = -1
 				nonSystem++
 
-			case "reasoning", "local_shell_call", "web_search_call", "image_generation_call", "other":
+			case "reasoning":
+				text := extractReasoningText(item.Content)
+				if text == "" {
+					text = extractReasoningText(item.Summary)
+				}
+				pendingReasoning += text
+				pendingReasoningSet = true
+
+			case "local_shell_call", "web_search_call", "image_generation_call", "other":
 				// Not representable in chat completions; drop.
 			default:
 				// Ignore unknown item types rather than failing the whole turn.
@@ -584,6 +647,24 @@ func (s *Server) buildResponsesPlan(req *responsesRequest) (*responsesPlan, erro
 	}
 
 	applyThinking(chatReq, req, s.cfg.Responses.Thinking)
+
+	// DeepSeek requires reasoning_content on assistant messages while thinking
+	// is on, including turns where the model produced no reasoning. Clients
+	// such as Codex cannot always provide it, so backfill an empty string.
+	if responsesThinkingEnabled(req, s.cfg.Responses.Thinking) {
+		for i := range msgs {
+			if msgs[i].Role == "assistant" && msgs[i].ReasoningContent == nil {
+				empty := ""
+				msgs[i].ReasoningContent = &empty
+			}
+		}
+	} else {
+		for i := range msgs {
+			if msgs[i].Role == "assistant" {
+				msgs[i].ReasoningContent = nil
+			}
+		}
+	}
 
 	if req.Text != nil && req.Text.Format != nil {
 		switch req.Text.Format.Type {
@@ -816,6 +897,13 @@ func (b *outputItemBuilder) doneJSON() map[string]any {
 			"call_id": b.callID,
 			"input":   extractCustomInput(b.args.String()),
 		}
+	case "reasoning":
+		return map[string]any{
+			"id":      b.id,
+			"type":    "reasoning",
+			"summary": []any{},
+			"content": []any{map[string]any{"type": "reasoning_text", "text": b.text.String()}},
+		}
 	default:
 		return map[string]any{"type": "other"}
 	}
@@ -834,6 +922,7 @@ type responsesStreamer struct {
 
 	output      []*outputItemBuilder
 	textItem    *outputItemBuilder
+	reasonItem  *outputItemBuilder
 	toolItems   map[int]*outputItemBuilder
 	pendingArgs map[int]string
 	usage       *chatUsage
@@ -913,6 +1002,31 @@ func (st *responsesStreamer) emitError(msg string) {
 			"message": msg,
 		},
 	})
+}
+
+func (st *responsesStreamer) appendReasoning(delta string) {
+	if delta == "" {
+		return
+	}
+	if st.reasonItem == nil {
+		item := &outputItemBuilder{
+			kind:  "reasoning",
+			index: len(st.output),
+			id:    "rs_" + newRequestID(),
+		}
+		st.output = append(st.output, item)
+		st.reasonItem = item
+		st.emit("response.output_item.added", map[string]any{
+			"output_index": item.index,
+			"item": map[string]any{
+				"id":      item.id,
+				"type":    "reasoning",
+				"summary": []any{},
+				"content": []any{},
+			},
+		})
+	}
+	st.reasonItem.text.WriteString(delta)
 }
 
 func (st *responsesStreamer) appendText(delta string) {
@@ -1070,6 +1184,13 @@ func (st *responsesStreamer) finish() {
 				"output_index": item.index,
 				"item":         item.doneJSON(),
 			})
+		case "reasoning":
+			// Codex persists reasoning items from the completed output and
+			// sends them back on the next turn, which DeepSeek requires.
+			st.emit("response.output_item.done", map[string]any{
+				"output_index": item.index,
+				"item":         item.doneJSON(),
+			})
 		}
 	}
 	st.emit("response.completed", map[string]any{
@@ -1085,6 +1206,9 @@ func (st *responsesStreamer) handleChunk(chunk *chatStreamChunk) {
 		return
 	}
 	choice := chunk.Choices[0]
+	if choice.Delta.ReasoningContent != nil {
+		st.appendReasoning(*choice.Delta.ReasoningContent)
+	}
 	if choice.Delta.Content != nil {
 		st.appendText(*choice.Delta.Content)
 	}
@@ -1210,6 +1334,14 @@ func (s *Server) relayResponsesJSON(w http.ResponseWriter, resp *http.Response, 
 
 	choice := cc.Choices[0]
 	var output []any
+	if choice.Message.ReasoningContent != nil && *choice.Message.ReasoningContent != "" {
+		output = append(output, map[string]any{
+			"id":      "rs_" + newRequestID(),
+			"type":    "reasoning",
+			"summary": []any{},
+			"content": []any{map[string]any{"type": "reasoning_text", "text": *choice.Message.ReasoningContent}},
+		})
+	}
 	if choice.Message.Content != nil && *choice.Message.Content != "" {
 		output = append(output, map[string]any{
 			"id":      "msg_" + newRequestID(),

@@ -428,6 +428,8 @@ func TestResponsesStreamTranslation(t *testing.T) {
 				"choices": []any{map[string]any{"index": 0, "delta": delta, "finish_reason": finish}},
 			}
 		}
+		write(chunk(map[string]any{"reasoning_content": "step one "}, nil))
+		write(chunk(map[string]any{"reasoning_content": "step two"}, nil))
 		write(chunk(map[string]any{"role": "assistant", "content": "Hello "}, nil))
 		write(chunk(map[string]any{"content": "world"}, nil))
 		write(chunk(map[string]any{"tool_calls": []any{
@@ -460,6 +462,7 @@ func TestResponsesStreamTranslation(t *testing.T) {
 		"input": []any{
 			map[string]any{"type": "message", "role": "developer", "content": []any{map[string]any{"type": "input_text", "text": "sys"}}},
 			map[string]any{"type": "message", "role": "user", "content": []any{map[string]any{"type": "input_text", "text": "hi"}}},
+			map[string]any{"type": "reasoning", "summary": []any{}, "content": []any{map[string]any{"type": "reasoning_text", "text": "prior thoughts"}}},
 			map[string]any{"type": "message", "role": "assistant", "content": []any{map[string]any{"type": "output_text", "text": "previous"}}},
 			map[string]any{"type": "function_call", "name": "exec_command", "arguments": `{"cmd":"pwd"}`, "call_id": "call_prev"},
 			map[string]any{"type": "function_call_output", "call_id": "call_prev", "output": "ok"},
@@ -527,6 +530,9 @@ func TestResponsesStreamTranslation(t *testing.T) {
 		}
 	}
 	assistant := msgs[2].(map[string]any)
+	if assistant["reasoning_content"] != "prior thoughts" {
+		t.Fatalf("assistant reasoning_content = %v", assistant["reasoning_content"])
+	}
 	toolCalls, _ := assistant["tool_calls"].([]any)
 	if len(toolCalls) != 1 {
 		t.Fatalf("assistant tool calls = %v", assistant["tool_calls"])
@@ -540,6 +546,9 @@ func TestResponsesStreamTranslation(t *testing.T) {
 		t.Fatalf("tool message = %v", toolMsg)
 	}
 	customAssistant := msgs[4].(map[string]any)
+	if customAssistant["reasoning_content"] != "" {
+		t.Fatalf("assistant reasoning_content should be backfilled, got %v", customAssistant["reasoning_content"])
+	}
 	customCalls, _ := customAssistant["tool_calls"].([]any)
 	if len(customCalls) != 1 {
 		t.Fatalf("custom assistant tool calls = %v", customAssistant["tool_calls"])
@@ -580,6 +589,15 @@ func TestResponsesStreamTranslation(t *testing.T) {
 		t.Fatalf("message text = %v", content["text"])
 	}
 
+	reasonItem := findDoneItem(events, "reasoning")
+	if reasonItem == nil {
+		t.Fatalf("no reasoning item done: %s", stream)
+	}
+	reasonContent := reasonItem["content"].([]any)[0].(map[string]any)
+	if reasonContent["text"] != "step one step two" {
+		t.Fatalf("reasoning text = %v", reasonContent["text"])
+	}
+
 	fnItem := findDoneItem(events, "function_call")
 	if fnItem == nil {
 		t.Fatalf("no function_call item done")
@@ -608,7 +626,7 @@ func TestResponsesNonStream(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
 			"id":"c1","object":"chat.completion","created":1,"model":"deepseek-flash",
-			"choices":[{"index":0,"message":{"role":"assistant","content":"json answer","tool_calls":[
+			"choices":[{"index":0,"message":{"role":"assistant","reasoning_content":"json thinking","content":"json answer","tool_calls":[
 				{"id":"call_1","type":"function","function":{"name":"exec_command","arguments":"{\"cmd\":\"ls\"}"}}
 			]},"finish_reason":"tool_calls"}],
 			"usage":{"prompt_tokens":3,"completion_tokens":4,"total_tokens":7}
@@ -632,14 +650,17 @@ func TestResponsesNonStream(t *testing.T) {
 		t.Fatal(err)
 	}
 	output, _ := payload["output"].([]any)
-	if len(output) != 2 {
+	if len(output) != 3 {
 		t.Fatalf("output = %v", payload["output"])
 	}
-	if output[0].(map[string]any)["type"] != "message" {
+	if output[0].(map[string]any)["type"] != "reasoning" {
 		t.Fatalf("output[0] = %v", output[0])
 	}
-	if output[1].(map[string]any)["type"] != "function_call" {
+	if output[1].(map[string]any)["type"] != "message" {
 		t.Fatalf("output[1] = %v", output[1])
+	}
+	if output[2].(map[string]any)["type"] != "function_call" {
+		t.Fatalf("output[2] = %v", output[2])
 	}
 	usage := payload["usage"].(map[string]any)
 	if usage["input_tokens"] != float64(3) || usage["output_tokens"] != float64(4) {
