@@ -77,7 +77,7 @@ func runAgent(cfg *config.Config, logger *slog.Logger, command string, args []st
 	case "claude":
 		spec = claudeSpec(cfg, base, token, args)
 	case "codex":
-		spec = codexSpec(cfg, base, token, args)
+		spec = codexSpec(cfg, base, token, args, binary, logger)
 	case "pi":
 		var specErr error
 		spec, specErr = piSpec(cfg, base, token, args, logger)
@@ -193,6 +193,11 @@ func claudeSpec(cfg *config.Config, base, token string, args []string) agentSpec
 	}
 }
 
+// modelContextWindow is the context window advertised to clients that need a
+// number instead of a model-name marker (Codex, pi). DeepSeek models accept
+// 1M tokens.
+const modelContextWindow = 1000000
+
 func withContextSuffix(model string) string {
 	if model == "" || strings.ContainsAny(model, "[]") {
 		return model
@@ -200,7 +205,7 @@ func withContextSuffix(model string) string {
 	return model + "[1m]"
 }
 
-func codexSpec(cfg *config.Config, base, token string, args []string) agentSpec {
+func codexSpec(cfg *config.Config, base, token string, args []string, codexBin string, logger *slog.Logger) agentSpec {
 	model := strings.TrimSpace(cfg.Models.Default)
 	if model == "" {
 		model = "deepseek-flash"
@@ -215,10 +220,24 @@ func codexSpec(cfg *config.Config, base, token string, args []string) agentSpec 
 		"-c", "model_providers.dspool.base_url=" + quoted(baseV1),
 		"-c", "model_providers.dspool.env_key=" + quoted("DSPOOL_API_KEY"),
 		"-c", "model_providers.dspool.wire_api=" + quoted("responses"),
+		// Codex has no metadata for DeepSeek model IDs and falls back to a
+		// 272k window. Without this, compaction kicks in far too early.
+		"-c", "model_context_window=" + strconv.Itoa(modelContextWindow),
+	}
+	// A catalog entry is what gives the TUI its /model list and reasoning
+	// picker; an unknown model gets neither.
+	if codexBin != "" {
+		if catalogPath, err := ensureCodexModelCatalog(codexBin, cfg, logger); err != nil {
+			logger.Warn("could not build Codex model catalog; /model will not list DeepSeek models", "error", err)
+		} else {
+			configArgs = append(configArgs, "-c", "model_catalog_json="+quoted(catalogPath))
+		}
+	}
+	configArgs = append(configArgs,
 		// Resolve the system proxy per destination (like native Codex) so a
 		// loopback dspool URL is not sent through the user's forward proxy.
 		"-c", "features.respect_system_proxy=true",
-	}
+	)
 	return agentSpec{
 		binary: "codex",
 		model:  model,

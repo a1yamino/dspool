@@ -232,7 +232,7 @@ func piModelEntry(id string) map[string]any {
 		"name":          id,
 		"reasoning":     true,
 		"input":         []any{"text", "image"},
-		"contextWindow": 1000000,
+		"contextWindow": modelContextWindow,
 		"maxTokens":     65536,
 	}
 	switch id {

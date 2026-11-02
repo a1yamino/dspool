@@ -155,12 +155,16 @@ claude
 dspool codex exec "fix the failing tests"
 ```
 
-The shortcut injects a provider with `-c`, sets `DSPOOL_API_KEY`, and enables per-destination system proxy resolution. Manual `~/.codex/config.toml` equivalent:
+The shortcut injects a provider with `-c`, sets `DSPOOL_API_KEY`, advertises the 1M context window (`model_context_window`), and points `model_catalog_json` at a generated catalog so `/model` lists the DeepSeek models with selectable reasoning levels. The catalog is written to `<state_dir>/codex-model-catalog.json`; entries reuse the instructions of a bundled Codex model because Codex rejects catalog entries without instructions.
+
+Manual `~/.codex/config.toml` equivalent:
 
 ```toml
 model = "deepseek-flash"
 model_provider = "dspool"
 model_reasoning_effort = "high"
+model_context_window = 1000000
+model_catalog_json = "/path/to/codex-model-catalog.json"
 
 [model_providers.dspool]
 name = "dspool"
@@ -295,6 +299,7 @@ Environment overrides: `DSPOOL_LISTEN`, `DSPOOL_STATE_FILE`, `DSPOOL_LOG_LEVEL`,
 - `/v1/tools/search` and `/v1/tools/fetch` proxy DeepSeek's raw endpoints; they do not add server-side web search to Chat Completions. Each successful request is billed by DeepSeek.
 - `count_tokens` returns a local estimate.
 - Agent shortcuts require a fixed listen port; a running daemon only reloads the key list (dashboard button, `POST /admin/reload`, or `SIGHUP`). Other config changes need `dspool stop && dspool start`.
+- The Codex `/model` picker and reasoning shortcuts depend on `-c model_catalog_json` and `codex debug models --bundled`. With a Codex build that lacks either, the shortcut still runs but the picker keeps Codex's bundled models.
 - DeepSeek model names may change. As of October 2026, dspool defaults to `deepseek-flash` and `deepseek-v4-pro`; adjust `models.*` if needed.
 
 ## Development

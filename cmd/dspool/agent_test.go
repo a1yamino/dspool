@@ -180,7 +180,7 @@ func TestClaudeSpec(t *testing.T) {
 
 func TestCodexSpec(t *testing.T) {
 	cfg := testConfig()
-	spec := codexSpec(cfg, "http://127.0.0.1:8787", "local-token", []string{"exec", "fix tests"})
+	spec := codexSpec(cfg, "http://127.0.0.1:8787", "local-token", []string{"exec", "fix tests"}, "", discardLog())
 	if spec.binary != "codex" || spec.model != "deepseek-flash" {
 		t.Fatalf("spec = %+v", spec)
 	}
@@ -191,6 +191,7 @@ func TestCodexSpec(t *testing.T) {
 		`model_providers.dspool.base_url="http://127.0.0.1:8787/v1"`,
 		`model_providers.dspool.env_key="DSPOOL_API_KEY"`,
 		`model_providers.dspool.wire_api="responses"`,
+		`model_context_window=1000000`,
 		`features.respect_system_proxy=true`,
 	} {
 		if !strings.Contains(joined, want) {
